@@ -22,17 +22,17 @@ private:
 	inline LexemeCode HandleHexNum(std::string& lexemeStr);
 	inline LexemeCode HandleOctNum(std::string& lexemeStr);
 
-	inline LexemeCode HandleErrNum(std::string& lexemeStr);
+	inline LexemeCode HandleErrWord(std::string& lexemeStr);
 
 	inline LexemeCode HandleDoubleChar(std::string& lexemeStr, LexemeCode firstLexeme, char nextChar, LexemeCode secondLexeme);
 
-	inline void NextChar(std::string& lexemeStr);
+	inline bool NextChar(std::string& lexemeStr);
 	void InputSourceText(const std::string& sourceFile);
 
 	std::string sourceText;
 	std::string::iterator curPos;
 	static std::unordered_map<std::string, LexemeCode> keywords;
-	static const int MAX_LEXEME_SIZE = 200;
+	static const int MAX_LEXEME_SIZE = 100;
 };
 
 
@@ -152,7 +152,8 @@ inline LexemeCode Scanner::HandleStringWord(std::string& lexemeStr)
 		|| '0' <= *curPos && *curPos <= '9'
 		|| '_' == *curPos)
 	{
-		NextChar(lexemeStr);
+		if (!NextChar(lexemeStr))
+			return HandleErrWord(lexemeStr);
 	}
 	auto keywordIt = keywords.find(lexemeStr);
 	if (keywordIt != keywords.end())
@@ -164,10 +165,12 @@ inline LexemeCode Scanner::HandleDecNum(std::string& lexemeStr)
 {
 	NextChar(lexemeStr);
 	while ('0' <= *curPos && *curPos <= '9')
+		if (!NextChar(lexemeStr))
+			return HandleErrWord(lexemeStr);
+	if (*curPos == 'l' || *curPos == 'L')
 		NextChar(lexemeStr);
-
 	if ('a' <= *curPos && *curPos <= 'z' || 'A' <= *curPos && *curPos <= 'Z' || '_' == *curPos)
-		return HandleErrNum(lexemeStr);
+		return HandleErrWord(lexemeStr);
 
 	return LexemeCode::TDecimNum;
 }
@@ -184,11 +187,14 @@ inline LexemeCode Scanner::HandleHexNum(std::string& lexemeStr)
 {
 	NextChar(lexemeStr);
 	if (!('0' <= *curPos && *curPos <= '9' || 'a' <= *curPos && *curPos <= 'f' || 'A' <= *curPos && *curPos <= 'F'))
-		return HandleErrNum(lexemeStr);
+		return HandleErrWord(lexemeStr);
 	while ('0' <= *curPos && *curPos <= '9' || 'a' <= *curPos && *curPos <= 'f' || 'A' <= *curPos && *curPos <= 'F')
+		if (!NextChar(lexemeStr))
+			return HandleErrWord(lexemeStr);
+	if (*curPos == 'l' || *curPos == 'L')
 		NextChar(lexemeStr);
 	if ('f' < *curPos && *curPos <= 'z' || 'F' < *curPos && *curPos <= 'Z' || '_' == *curPos)
-		return HandleErrNum(lexemeStr);
+		return HandleErrWord(lexemeStr);
 
 	return LexemeCode::THexNum;
 }
@@ -196,14 +202,17 @@ inline LexemeCode Scanner::HandleHexNum(std::string& lexemeStr)
 inline LexemeCode Scanner::HandleOctNum(std::string& lexemeStr)
 {
 	while ('0' <= *curPos && *curPos <= '7')
+		if (!NextChar(lexemeStr))
+			return HandleErrWord(lexemeStr);
+	if (*curPos == 'l' || *curPos == 'L')
 		NextChar(lexemeStr);
 	if ('a' <= *curPos && *curPos <= 'z' || 'A' <= *curPos && *curPos <= 'Z' || '8' <= *curPos && *curPos <= '9' || '_' == *curPos)
-		return HandleErrNum(lexemeStr);
+		return HandleErrWord(lexemeStr);
 
 	return LexemeCode::TOctNum;
 }
 
-inline LexemeCode Scanner::HandleErrNum(std::string& lexemeStr)
+inline LexemeCode Scanner::HandleErrWord(std::string& lexemeStr)
 {
 	while ('a' <= *curPos && *curPos <= 'z' || 'A' <= *curPos && *curPos <= 'Z'
 		|| '0' <= *curPos && *curPos <= '9' || '_' == *curPos)
@@ -224,9 +233,11 @@ inline LexemeCode Scanner::HandleDoubleChar(std::string& lexemeStr, LexemeCode f
 	return firstLexeme;
 }
 
-inline void Scanner::NextChar(std::string& lexemeStr)
+inline bool Scanner::NextChar(std::string& lexemeStr)
 {
-	if (lexemeStr.size() < MAX_LEXEME_SIZE)
+	bool isLexemeOverflow = lexemeStr.size() > MAX_LEXEME_SIZE;
+	if (!isLexemeOverflow)
 		lexemeStr.push_back(*curPos);
 	++curPos;
+	return !isLexemeOverflow;
 }

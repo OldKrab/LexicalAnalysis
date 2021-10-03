@@ -7,8 +7,7 @@ int main()
 {
 	Scanner scanner("testedSource.cpp");
 	std::ofstream fout("output.txt");
-	std::cout.rdbuf(fout.rdbuf());
-	scanner.Scan(std::cout);
+	scanner.Scan(fout);
 	return 0;
 }
 
