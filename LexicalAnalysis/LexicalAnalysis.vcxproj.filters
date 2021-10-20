@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="LexicalAnalysis.cpp">
+    <ClCompile Include="src\LexicalAnalysis.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Scanner.cpp">
+    <ClCompile Include="src\Scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Scanner.h">
+    <ClInclude Include="src\Scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LexemeCode.h">
+    <ClInclude Include="src\LexemeCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
