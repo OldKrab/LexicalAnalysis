@@ -1,134 +1,134 @@
-void      - TVoid
-SomeFunc  - TId
-(         - TOpenPar
-int       - Tint
-param     - TId
-,         - TComma
-int       - Tint
-param2    - TId
-)         - TClosePar
-{         - TOpenBrace
-int       - Tint
-_local_var - TId
-=         - TAssign
-param     - TId
-+         - TPlus
-param2    - TId
-;         - TSemi
-}         - TCloseBrace
-int       - Tint
-main      - TMain
-(         - TOpenPar
-)         - TClosePar
-{         - TOpenBrace
-int       - Tint
-decNum    - TId
-=         - TAssign
-12        - TDecimNum
-;         - TSemi
-long      - TLong
-hexNum    - TId
-=         - TAssign
-0x1b      - THexNum
-;         - TSemi
-short     - TShort
-octNum    - TId
-=         - TAssign
-017       - TOctNum
-;         - TSemi
-bool      - TBool
-boolNum   - TId
-=         - TAssign
-decNum    - TId
-==        - TE
-hexNum    - TId
-;         - TSemi
-decNum    - TId
-=         - TAssign
-hexNum    - TId
-*         - TMul
-(         - TOpenPar
-octNum    - TId
--         - TMinus
-3         - TDecimNum
-)         - TClosePar
-%         - TModul
-5         - TDecimNum
-;         - TSemi
-hexNum    - TId
-++        - TInc
-;         - TSemi
-++        - TInc
-hexNum    - TId
-;         - TSemi
---        - TDec
-octNum    - TId
-;         - TSemi
-octNum    - TId
---        - TDec
-;         - TSemi
-for       - TFor
-(         - TOpenPar
-int       - Tint
-i         - TId
-=         - TAssign
-0         - TOctNum
-;         - TSemi
-i         - TId
-<         - TL
-10        - TDecimNum
-;         - TSemi
-i         - TId
-++        - TInc
-)         - TClosePar
-{         - TOpenBrace
-hexNum    - TId
-=         - TAssign
-hexNum    - TId
-/         - TDiv
-2         - TDecimNum
-;         - TSemi
-}         - TCloseBrace
-boolNum   - TId
-=         - TAssign
-decNum    - TId
->         - TG
-octNum    - TId
-!=        - TNE
-octNum    - TId
-<         - TL
-hexNum    - TId
-;         - TSemi
-boolNum   - TId
-=         - TAssign
-octNum    - TId
->=        - TGE
-decNum    - TId
-!=        - TNE
-decNum    - TId
-<=        - TLE
-hexNum    - TId
-;         - TSemi
-decNum    - TId
-=         - TAssign
-12de_     - TErr
-;         - TSemi
-hexNum    - TId
-=         - TAssign
-0x        - TErr
-;         - TSemi
-hexNum    - TId
-=         - TAssign
-0x23fg2   - TErr
-;         - TSemi
-octNum    - TId
-=         - TAssign
-019       - TErr
-;         - TSemi
-octNum    - TId
-=         - TAssign
-!         - TErr
-02a       - TErr
-;         - TSemi
-}         - TCloseBrace
-          - TEnd
+void      - TVoid 2 0
+SomeFunc  - TId 2 5
+(         - TOpenPar 2 13
+int       - Tint 2 14
+param     - TId 2 18
+,         - TComma 2 23
+int       - Tint 2 25
+param2    - TId 2 29
+)         - TClosePar 2 35
+{         - TOpenBrace 2 36
+int       - Tint 3 1
+_local_var - TId 3 5
+=         - TAssign 3 16
+param     - TId 3 18
++         - TPlus 3 24
+param2    - TId 3 26
+;         - TSemi 3 32
+}         - TCloseBrace 4 0
+int       - Tint 6 0
+main      - TMain 6 4
+(         - TOpenPar 6 8
+)         - TClosePar 6 9
+{         - TOpenBrace 6 10
+int       - Tint 7 1
+decNum    - TId 7 5
+=         - TAssign 7 12
+12        - TDecimNum 7 14
+;         - TSemi 7 16
+long      - TLong 8 1
+hexNum    - TId 8 6
+=         - TAssign 8 13
+0x1b      - THexNum 8 15
+;         - TSemi 8 19
+short     - TShort 9 1
+octNum    - TId 9 7
+=         - TAssign 9 14
+017       - TOctNum 9 16
+;         - TSemi 9 19
+bool      - TBool 10 1
+boolNum   - TId 10 6
+=         - TAssign 10 14
+decNum    - TId 10 16
+==        - TE 10 23
+hexNum    - TId 10 26
+;         - TSemi 10 32
+decNum    - TId 11 1
+=         - TAssign 11 8
+hexNum    - TId 11 10
+*         - TMul 11 17
+(         - TOpenPar 11 19
+octNum    - TId 11 20
+-         - TMinus 11 27
+3         - TDecimNum 11 29
+)         - TClosePar 11 30
+%         - TModul 11 32
+5         - TDecimNum 11 34
+;         - TSemi 11 35
+hexNum    - TId 12 1
+++        - TInc 12 7
+;         - TSemi 12 9
+++        - TInc 13 1
+hexNum    - TId 13 3
+;         - TSemi 13 9
+--        - TDec 14 1
+octNum    - TId 14 3
+;         - TSemi 14 9
+octNum    - TId 15 1
+--        - TDec 15 7
+;         - TSemi 15 9
+for       - TFor 16 1
+(         - TOpenPar 16 4
+int       - Tint 16 5
+i         - TId 16 9
+=         - TAssign 16 11
+0         - TOctNum 16 13
+;         - TSemi 16 14
+i         - TId 16 16
+<         - TL 16 18
+10        - TDecimNum 16 20
+;         - TSemi 16 22
+i         - TId 16 24
+++        - TInc 16 25
+)         - TClosePar 16 27
+{         - TOpenBrace 16 28
+hexNum    - TId 17 2
+=         - TAssign 17 9
+hexNum    - TId 17 11
+/         - TDiv 17 18
+2         - TDecimNum 17 20
+;         - TSemi 17 21
+}         - TCloseBrace 18 1
+boolNum   - TId 19 1
+=         - TAssign 19 9
+decNum    - TId 19 11
+>         - TG 19 18
+octNum    - TId 19 20
+!=        - TNE 19 27
+octNum    - TId 19 30
+<         - TL 19 37
+hexNum    - TId 19 39
+;         - TSemi 19 45
+boolNum   - TId 20 1
+=         - TAssign 20 9
+octNum    - TId 20 11
+>=        - TGE 20 18
+decNum    - TId 20 21
+!=        - TNE 20 28
+decNum    - TId 20 31
+<=        - TLE 20 38
+hexNum    - TId 20 41
+;         - TSemi 20 47
+decNum    - TId 22 1
+=         - TAssign 22 8
+12de_     - TErr 22 10
+;         - TSemi 22 15
+hexNum    - TId 23 1
+=         - TAssign 23 8
+0x        - TErr 23 10
+;         - TSemi 23 12
+hexNum    - TId 24 1
+=         - TAssign 24 8
+0x23fg2   - TErr 24 10
+;         - TSemi 24 17
+octNum    - TId 25 1
+=         - TAssign 25 8
+019       - TErr 25 10
+;         - TSemi 25 13
+octNum    - TId 26 1
+=         - TAssign 26 8
+!         - TErr 26 10
+02a       - TErr 26 11
+;         - TSemi 26 14
+}         - TCloseBrace 27 0
+          - TEnd 28 15

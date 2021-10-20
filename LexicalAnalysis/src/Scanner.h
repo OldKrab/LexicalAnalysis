@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include "LexemeCode.h"
+#include "SourceText.h"
 
 
 class Scanner
@@ -11,26 +12,26 @@ class Scanner
 public:
 	Scanner(const std::string& sourceFile);
 	inline void Scan(std::ostream& out);
+	inline LexemeCode NextScan(std::string& lexemeStr, SourceText::Iterator& pos);
+
 private:
-	inline LexemeCode NextScan(std::string& lexemeStr);
 
 	inline void SkipIgnoreChars();
 	inline void SkipComment();
+
 	inline LexemeCode HandleStringWord(std::string& lexemeStr);
 	inline LexemeCode HandleDecNum(std::string& lexemeStr);
 	inline LexemeCode HandleHexOrOctNum(std::string& lexemeStr);
 	inline LexemeCode HandleHexNum(std::string& lexemeStr);
 	inline LexemeCode HandleOctNum(std::string& lexemeStr);
-
 	inline LexemeCode HandleErrWord(std::string& lexemeStr);
-
 	inline LexemeCode HandleDoubleChar(std::string& lexemeStr, LexemeCode firstLexeme, char nextChar, LexemeCode secondLexeme);
 
 	inline bool NextChar(std::string& lexemeStr);
 	void InputSourceText(const std::string& sourceFile);
 
-	std::string sourceText;
-	std::string::iterator curPos;
+	SourceText sourceText;
+	SourceText::Iterator curPos;
 	static std::unordered_map<std::string, LexemeCode> keywords;
 	static const int MAX_LEXEME_SIZE = 100;
 };
@@ -41,22 +42,23 @@ inline void Scanner::Scan(std::ostream& out)
 	std::string lexemeStr;
 	LexemeCode lexemeCode = LexemeCode::TAssign;
 	while (lexemeCode != LexemeCode::TEnd) {
-		lexemeCode = NextScan(lexemeStr);
+		SourceText::Iterator savePos;
+		lexemeCode = NextScan(lexemeStr, savePos);
 		out.width(9);
 		out.flags(out.left);
-		out << lexemeStr << " - " << LexicalCodeToString(lexemeCode) << std::endl;
+		out << lexemeStr << " - " << LexicalCodeToString(lexemeCode) << " " << savePos.row << ' ' << savePos.column<< std::endl;
 	}
 
 }
 
 
-inline LexemeCode Scanner::NextScan(std::string& lexemeStr)
+inline LexemeCode Scanner::NextScan(std::string& lexemeStr, SourceText::Iterator& pos)
 {
 	lexemeStr.clear();
 	lexemeStr.reserve(MAX_LEXEME_SIZE);
 
 	SkipIgnoreChars();
-
+	pos = curPos;
 	if (*curPos == 0)
 		return LexemeCode::TEnd;
 
@@ -123,11 +125,14 @@ inline void Scanner::SkipIgnoreChars()
 	{
 		switch (*curPos)
 		{
-		case '/':
-			if (*(curPos + 1) != '/')
+		case '/':{
+			auto tmpPos = curPos;
+			++tmpPos;
+			if (*tmpPos != '/')
 				return;
 			SkipComment();
 			break;
+		}
 		case '\n': case '\r': case '\t': case ' ':
 			++curPos;
 			break;
@@ -139,7 +144,7 @@ inline void Scanner::SkipIgnoreChars()
 
 inline void Scanner::SkipComment()
 {
-	curPos += 2;
+	++curPos;
 	while (*curPos != 0 && *curPos != '\n')
 		++curPos;
 }

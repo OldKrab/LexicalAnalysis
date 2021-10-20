@@ -139,10 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\LexicalAnalysis.cpp" />
+    <ClCompile Include="src\SourceText.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\SourceText.h" />
     <ClInclude Include="src\LexemeCode.h" />
     <ClInclude Include="src\Scanner.h" />
   </ItemGroup>

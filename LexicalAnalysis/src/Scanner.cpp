@@ -24,6 +24,7 @@ void Scanner::InputSourceText(const std::string& sourceFile)
 	std::ifstream fin(sourceFile);
 	std::stringstream sb;
 	sb << fin.rdbuf();
-	sourceText = sb.str();
-	sourceText.push_back(0);
+	auto source = sb.str();
+	source.push_back(0);
+	sourceText = source;
 }
