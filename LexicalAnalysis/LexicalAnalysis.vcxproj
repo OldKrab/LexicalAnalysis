@@ -148,7 +148,7 @@
   <ItemGroup>
     <ClInclude Include="src\Lexeme.h" />
     <ClInclude Include="src\SourceText.h" />
-    <ClInclude Include="src\LexemeCode.h" />
+    <ClInclude Include="src\LexemeType.h" />
     <ClInclude Include="src\Scanner.h" />
     <ClInclude Include="src\SyntaxAnalyser.h" />
     <ClInclude Include="src\SyntaxAnalysisException.h" />

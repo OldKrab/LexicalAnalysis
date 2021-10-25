@@ -25,7 +25,7 @@ private:
 	inline void HandleHexNum();
 	inline void HandleOctNum();
 	inline void HandleErrWord();
-	inline void HandleDoubleChar(LexemeCode firstLexeme, char nextChar, LexemeCode secondLexeme);
+	inline void HandleDoubleChar(LexemeType firstLexeme, char nextChar, LexemeType secondLexeme);
 
 	inline bool NextChar();
 	void InputSourceText(const std::string& sourceFile);
@@ -34,7 +34,7 @@ private:
 	SourceText::Iterator curPos;
 	Lexeme _lexeme;
 
-	static std::unordered_map<std::string, LexemeCode> keywords;
+	static std::unordered_map<std::string, LexemeType> keywords;
 	static const int MAX_LEXEME_SIZE = 100;
 };
 
@@ -50,7 +50,7 @@ inline Lexeme Scanner::LookForward(int k)
 
 inline void Scanner::Scan(std::ostream& out)
 {
-	while (_lexeme.code != LexemeCode::TEnd) {
+	while (_lexeme.code != LexemeType::TEnd) {
 		SourceText::Iterator savePos;
 		NextScan();
 		out.width(9);
@@ -70,7 +70,7 @@ inline Lexeme Scanner::NextScan()
 	_lexeme.pos = curPos;
 
 	if (*curPos == 0) {
-		_lexeme.code = LexemeCode::TEnd;
+		_lexeme.code = LexemeType::TEnd;
 	}
 
 	else if ('a' <= *curPos && *curPos <= 'z' ||
@@ -86,61 +86,61 @@ inline Lexeme Scanner::NextScan()
 			break;
 		case ',':
 			NextChar();
-			_lexeme.code = LexemeCode::TComma;
+			_lexeme.code = LexemeType::TComma;
 			break;
 		case ';':
 			NextChar();
-			_lexeme.code = LexemeCode::TSemi;
+			_lexeme.code = LexemeType::TSemi;
 			break;
 		case '(':
 			NextChar();
-			_lexeme.code = LexemeCode::TOpenPar;
+			_lexeme.code = LexemeType::TOpenPar;
 			break;
 		case ')':
 			NextChar();
-			_lexeme.code = LexemeCode::TClosePar;
+			_lexeme.code = LexemeType::TClosePar;
 			break;
 		case '{':
 			NextChar();
-			_lexeme.code = LexemeCode::TOpenBrace;
+			_lexeme.code = LexemeType::TOpenBrace;
 			break;
 		case '}':
 			NextChar();
-			_lexeme.code = LexemeCode::TCloseBrace;
+			_lexeme.code = LexemeType::TCloseBrace;
 			break;
 		case '*':
 			NextChar();
-			_lexeme.code = LexemeCode::TMul;
+			_lexeme.code = LexemeType::TMul;
 			break;
 		case '/':
 			NextChar();
-			_lexeme.code = LexemeCode::TDiv;
+			_lexeme.code = LexemeType::TDiv;
 			break;
 		case '%':
 			NextChar();
-			_lexeme.code = LexemeCode::TModul;
+			_lexeme.code = LexemeType::TModul;
 			break;
 		case '+':
-			HandleDoubleChar(LexemeCode::TPlus, '+', LexemeCode::TInc);
+			HandleDoubleChar(LexemeType::TPlus, '+', LexemeType::TInc);
 			break;
 		case '-':
-			HandleDoubleChar(LexemeCode::TMinus, '-', LexemeCode::TDec);
+			HandleDoubleChar(LexemeType::TMinus, '-', LexemeType::TDec);
 			break;
 		case '>':
-			HandleDoubleChar(LexemeCode::TG, '=', LexemeCode::TGE);
+			HandleDoubleChar(LexemeType::TG, '=', LexemeType::TGE);
 			break;
 		case '<':
-			HandleDoubleChar(LexemeCode::TL, '=', LexemeCode::TLE);
+			HandleDoubleChar(LexemeType::TL, '=', LexemeType::TLE);
 			break;
 		case '=':
-			HandleDoubleChar(LexemeCode::TAssign, '=', LexemeCode::TE);
+			HandleDoubleChar(LexemeType::TAssign, '=', LexemeType::TE);
 			break;
 		case '!':
-			HandleDoubleChar(LexemeCode::TErr, '=', LexemeCode::TNE);
+			HandleDoubleChar(LexemeType::TErr, '=', LexemeType::TNE);
 			break;
 		default:
 			NextChar();
-			_lexeme.code = LexemeCode::TErr;
+			_lexeme.code = LexemeType::TErr;
 		}
 	}
 	return _lexeme;
@@ -194,7 +194,7 @@ inline void Scanner::HandleStringWord()
 	if (keywordIt != keywords.end())
 		_lexeme.code = keywordIt->second;
 	else
-		_lexeme.code = LexemeCode::TId;
+		_lexeme.code = LexemeType::TId;
 }
 
 inline void Scanner::HandleDecNum()
@@ -208,7 +208,7 @@ inline void Scanner::HandleDecNum()
 	if ('a' <= *curPos && *curPos <= 'z' || 'A' <= *curPos && *curPos <= 'Z' || '_' == *curPos)
 		return HandleErrWord();
 
-	_lexeme.code = LexemeCode::TDecimNum;
+	_lexeme.code = LexemeType::TDecimNum;
 }
 
 inline void Scanner::HandleHexOrOctNum()
@@ -232,7 +232,7 @@ inline void Scanner::HandleHexNum()
 	if ('f' < *curPos && *curPos <= 'z' || 'F' < *curPos && *curPos <= 'Z' || '_' == *curPos)
 		return HandleErrWord();
 
-	_lexeme.code = LexemeCode::THexNum;
+	_lexeme.code = LexemeType::THexNum;
 }
 
 inline void Scanner::HandleOctNum()
@@ -245,7 +245,7 @@ inline void Scanner::HandleOctNum()
 	if ('a' <= *curPos && *curPos <= 'z' || 'A' <= *curPos && *curPos <= 'Z' || '8' <= *curPos && *curPos <= '9' || '_' == *curPos)
 		return HandleErrWord();
 
-	_lexeme.code = LexemeCode::TOctNum;
+	_lexeme.code = LexemeType::TOctNum;
 }
 
 inline void Scanner::HandleErrWord()
@@ -255,10 +255,10 @@ inline void Scanner::HandleErrWord()
 	{
 		NextChar();
 	}
-	_lexeme.code = LexemeCode::TErr;
+	_lexeme.code = LexemeType::TErr;
 }
 
-inline void Scanner::HandleDoubleChar(LexemeCode firstLexeme, char nextChar, LexemeCode secondLexeme)
+inline void Scanner::HandleDoubleChar(LexemeType firstLexeme, char nextChar, LexemeType secondLexeme)
 {
 	NextChar();
 	if (*curPos == nextChar)

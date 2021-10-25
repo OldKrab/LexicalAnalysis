@@ -1,13 +1,13 @@
 ﻿#pragma once
 #include <string>
 
-#include "LexemeCode.h"
+#include "LexemeType.h"
 #include "SourceText.h"
 
 struct Lexeme
 {
-	Lexeme() :code(LexemeCode::TErr) {}
+	Lexeme() :type(LexemeType::Err) {}
 	std::string str;
-	LexemeCode code;
+	LexemeType type;
 	SourceText::Iterator pos;
 };
