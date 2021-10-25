@@ -1,8 +1,10 @@
 #pragma once
+#include <map>
+
 enum class LexemeCode : unsigned int
 {
 	TFor = 1,
-	Tint = 2,
+	TInt = 2,
 	TShort = 3,
 	TLong = 4,
 	TBool = 5,
@@ -39,7 +41,7 @@ enum class LexemeCode : unsigned int
 inline std::string LexicalCodeToString(LexemeCode code) {
 	std::map<LexemeCode, std::string> lexicalStrings = {
 		{LexemeCode::TFor, "TFor"},
-		{LexemeCode::Tint, "Tint"},
+		{LexemeCode::TInt, "TInt"},
 		{LexemeCode::TShort, "TShort"},
 		{LexemeCode::TLong, "TLong"},
 		{LexemeCode::TBool, "TBool"},

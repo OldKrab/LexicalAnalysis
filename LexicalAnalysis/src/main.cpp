@@ -1,13 +1,22 @@
 ﻿#include <iostream>
 #include <fstream>
 #include "Scanner.h"
-
+#include "SyntaxAnalyser.h"
 
 int main()
 {
-	Scanner scanner("testedSource.cpp");
+	setlocale(LC_ALL, "rus");
+	Scanner scanner("tested.cpp");
 	std::ofstream fout("output.txt");
-	scanner.Scan(fout);
+	SyntaxAnalyser analyser(&scanner);
+	try{
+	analyser.TProgram();
+	}catch (std::exception& e)
+	{
+		std::cout << e.what();
+		return 1;
+	}
+	std::cout << "Analysis success";
 	return 0;
 }
 

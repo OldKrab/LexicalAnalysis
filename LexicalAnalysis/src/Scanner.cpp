@@ -5,7 +5,7 @@
 
  std::unordered_map<std::string, LexemeCode> Scanner::keywords = {
  	{"for", LexemeCode::TFor},
- 	{"int", LexemeCode::Tint},
+ 	{"int", LexemeCode::TInt},
  	{"short", LexemeCode::TShort},
  	{"long", LexemeCode::TLong},
  	{"void", LexemeCode::TVoid},
@@ -18,6 +18,8 @@ Scanner::Scanner(const std::string& sourceFile)
 	InputSourceText(sourceFile);
 	curPos = sourceText.begin();
 }
+
+
 
 void Scanner::InputSourceText(const std::string& sourceFile)
 {

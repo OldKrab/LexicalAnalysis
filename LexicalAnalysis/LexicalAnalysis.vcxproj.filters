@@ -21,7 +21,7 @@
     <ClCompile Include="src\Scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\SourceText.cpp">
+    <ClCompile Include="src\Lexeme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -33,6 +33,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SourceText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SyntaxAnalyser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Lexeme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SyntaxAnalysisException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -88,6 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -102,6 +103,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,14 +141,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\SourceText.cpp" />
+    <ClCompile Include="src\Lexeme.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Lexeme.h" />
     <ClInclude Include="src\SourceText.h" />
     <ClInclude Include="src\LexemeCode.h" />
     <ClInclude Include="src\Scanner.h" />
+    <ClInclude Include="src\SyntaxAnalyser.h" />
+    <ClInclude Include="src\SyntaxAnalysisException.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
