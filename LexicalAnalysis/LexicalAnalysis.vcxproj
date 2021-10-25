@@ -146,6 +146,7 @@
     <ClCompile Include="src\Scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ErrorCode.h" />
     <ClInclude Include="src\Lexeme.h" />
     <ClInclude Include="src\SourceText.h" />
     <ClInclude Include="src\LexemeType.h" />

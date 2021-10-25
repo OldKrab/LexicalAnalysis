@@ -4,13 +4,13 @@
 #include "Scanner.h"
 
  std::unordered_map<std::string, LexemeType> Scanner::keywords = {
- 	{"for", LexemeType::TFor},
- 	{"int", LexemeType::TInt},
- 	{"short", LexemeType::TShort},
- 	{"long", LexemeType::TLong},
- 	{"void", LexemeType::TVoid},
- 	{"main", LexemeType::TMain},
- 	{"bool", LexemeType::TBool}
+ 	{"for", LexemeType::For},
+ 	{"int", LexemeType::Int},
+ 	{"short", LexemeType::Short},
+ 	{"long", LexemeType::Long},
+ 	{"void", LexemeType::Void},
+ 	{"main", LexemeType::Main},
+ 	{"bool", LexemeType::Bool}
  };
 
 Scanner::Scanner(const std::string& sourceFile)

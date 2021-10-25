@@ -11,3 +11,4 @@ struct Lexeme
 	LexemeType type;
 	SourceText::Iterator pos;
 };
+

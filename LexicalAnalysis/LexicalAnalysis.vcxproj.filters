@@ -44,5 +44,8 @@
     <ClInclude Include="src\SyntaxAnalysisException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ErrorCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
