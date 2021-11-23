@@ -244,8 +244,9 @@ inline void SyntaxAnalyser::PrefixExpr()
 
 inline void SyntaxAnalyser::PostfixExpr()
 {
-	auto lex = scanner->LookForward(2);
-	if (lex.type == LexemeType::OpenPar)
+	auto lex = scanner->LookForward(1);
+	auto lex2 = scanner->LookForward(2);
+	if (lex.type == LexemeType::Id && lex2.type == LexemeType::OpenPar)
 	{
 		lex = scanner->NextScan();					// Id, main
 		if (lex.type != LexemeType::Id && lex.type != LexemeType::Main)

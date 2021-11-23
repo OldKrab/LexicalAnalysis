@@ -8,7 +8,7 @@ int main(){
 	long hexNum = 0x1b;
 	short octNum = 017;
 	bool boolNum = decNum == hexNum;
-	decNum = hexNum * (octNum - 3) % 5;
+	decNum = hexNum * (octNum - 3) % 5;a
 	hexNum++;
 	++hexNum;
 	--octNum;
