@@ -55,7 +55,7 @@ inline void Scanner::Scan(std::ostream& out)
 		NextScan();
 		out.width(9);
 		out.flags(out.left);
-		out << _lexeme.str << LexicalCodeToString(_lexeme.type) << " " << _lexeme.pos.row << ' ' << _lexeme.pos.column << std::endl;
+		out << _lexeme.str << LexemeTypeToString(_lexeme.type) << " " << _lexeme.pos.row << ' ' << _lexeme.pos.column << std::endl;
 	}
 
 }

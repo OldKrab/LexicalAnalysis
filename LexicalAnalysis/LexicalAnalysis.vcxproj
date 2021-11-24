@@ -118,6 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,13 +143,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Semantics\SemanticTree.cpp" />
     <ClCompile Include="src\Lexeme.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
+    <ClCompile Include="src\SyntaxAnalyser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ErrorCode.h" />
+    <ClInclude Include="src\Semantics\Node\EmptyNode.h" />
+    <ClInclude Include="src\Semantics\Node\FuncNode.h" />
+    <ClInclude Include="src\Semantics\Node\Node.h" />
+    <ClInclude Include="src\Semantics\SemanticTree.h" />
     <ClInclude Include="src\Lexeme.h" />
+    <ClInclude Include="src\Semantics\Node\VarNode.h" />
     <ClInclude Include="src\SourceText.h" />
     <ClInclude Include="src\LexemeType.h" />
     <ClInclude Include="src\Scanner.h" />

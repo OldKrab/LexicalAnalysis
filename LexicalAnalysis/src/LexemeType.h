@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <string>
 
 enum class LexemeType : unsigned int
 {
@@ -38,7 +39,7 @@ enum class LexemeType : unsigned int
 	Err = 200
 };
 
-inline std::string LexicalCodeToString(LexemeType code) {
+inline std::string LexemeTypeToString(LexemeType code) {
 	std::map<LexemeType, std::string> lexicalStrings = {
 		{LexemeType::For, "For"},
 		{LexemeType::Int, "Int"},

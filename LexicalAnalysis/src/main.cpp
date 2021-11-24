@@ -7,9 +7,8 @@
 int main()
 {
 	setlocale(LC_ALL, "rus");
-	Scanner scanner("tested.cpp");
 	std::ofstream fout("output.txt");
-	SyntaxAnalyser analyser(&scanner);
+	SyntaxAnalyser analyser("tested.cpp");
 	try {
 		analyser.Program();
 	}
