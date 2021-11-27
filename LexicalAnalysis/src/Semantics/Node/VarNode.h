@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LexemeType.h"
+#include "Types.h"
 #include "Node.h"
 #include <iostream>
 #include <utility>
@@ -7,16 +7,20 @@
 
 struct VarNode : Node
 {
-	VarNode(std::string id, LexemeType Type)
-	: Node(std::move(id)), Type(Type){}
+	VarNode(Node* parent, std::string id, DataType type, bool isInitialized)
+		: Node(std::move(id), parent),
+		Type(type),
+		IsInitialized(isInitialized) {}
 
-	NodeType GetType() const override { return NodeType::Var; }
+	DataType GetDataType() const override { return Type; }
+	SemanticType GetSemanticType() const override { return SemanticType::Var; }
 
-	LexemeType Type;
-	bool IsInitialized = false;
+	DataType Type;
+	bool IsInitialized;
+
 protected:
 	void Print(std::ostream& out) const override
 	{
-		out << "Variable Node: Type = " << LexemeTypeToString(Type) << ", Id = " << Identifier << ", Is Initialized = " << IsInitialized << "\n";
+		out << "Variable Node: Type = " << DataTypeToString(Type) << ", Id = " << Identifier << ", Is Initialized = " << IsInitialized << "\n";
 	}
 };

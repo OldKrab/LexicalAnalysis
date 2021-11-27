@@ -2,15 +2,17 @@
 #include <iostream>
 
 #include "Node.h"
+#include "Types.h"
 
 struct EmptyNode:  Node
 {
-	EmptyNode():Node(""){}
+	EmptyNode(Node* parent):Node("", parent){}
 
-	NodeType GetType() const override
+	DataType GetDataType() const override
 	{
-		return NodeType::Empty;
+		return DataType::Unknown;
 	}
+	SemanticType GetSemanticType() const override { return SemanticType::Empty; }
 
 protected:
 	void Print(std::ostream& out) const override

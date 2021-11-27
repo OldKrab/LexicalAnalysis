@@ -2,20 +2,23 @@
 #include <iostream>
 #include <utility>
 
-#include "LexemeType.h"
+#include "Types.h"
 #include "Node.h"
 
 
 struct FuncNode : Node
 {
-	FuncNode(std::string id):Node(std::move(id)){}
+	FuncNode(Node* parent, std::string id) :Node(std::move(id), parent) {}
 
-	NodeType GetType() const override { return NodeType::Func; }
+	DataType GetDataType() const override { return DataType::Void; }
+
+	SemanticType GetSemanticType() const override { return SemanticType::Func; }
 
 	int ParamsCount = 0;
+
 protected:
 	void Print(std::ostream& out) const override
 	{
-		out << "Function Node: Id = " << Identifier << "\n";
+		out << "Function Node: Id = " << Identifier << ", Param Count = " << ParamsCount << "\n";
 	}
 };

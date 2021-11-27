@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 
-#include "LexemeType.h"
+#include "Types.h"
 #include "SourceText.h"
 
 struct Lexeme

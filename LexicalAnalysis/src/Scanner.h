@@ -272,7 +272,7 @@ inline void Scanner::HandleDoubleChar(LexemeType firstLexeme, char nextChar, Lex
 
 inline bool Scanner::NextChar()
 {
-	bool isLexemeOverflow = _lexeme.str.size() > MAX_LEXEME_SIZE;
+	const bool isLexemeOverflow = _lexeme.str.size() > MAX_LEXEME_SIZE;
 	if (!isLexemeOverflow)
 		_lexeme.str.push_back(*curPos);
 	++curPos;
