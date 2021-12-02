@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <stack>
-#include <SyntaxAnalysisException.h>
-
+#include "SyntaxAnalysisException.h"
 #include "Semantics/Node/VarNode.h"
 
 

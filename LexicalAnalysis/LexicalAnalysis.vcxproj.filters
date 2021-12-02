@@ -21,9 +21,6 @@
     <ClCompile Include="src\Scanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Lexeme.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Semantics\SemanticTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,9 +45,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SyntaxAnalysisException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ErrorCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Semantics\SemanticTree.h">

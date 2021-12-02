@@ -16,5 +16,6 @@ int main()
 		return 1;
 	}
 	std::cout << "Analysis success";
+
 	return 0;
 }
