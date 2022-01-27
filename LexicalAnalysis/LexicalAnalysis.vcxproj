@@ -29,13 +29,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -143,23 +143,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Semantics\Node\FuncData.cpp" />
+    <ClCompile Include="src\Semantics\Node\Node.cpp" />
+    <ClCompile Include="src\Semantics\Node\VarData.cpp" />
     <ClCompile Include="src\Semantics\SemanticTree.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Scanner.cpp" />
-    <ClCompile Include="src\SyntaxAnalyser.cpp" />
+    <ClCompile Include="src\Lexical\Scanner.cpp" />
+    <ClCompile Include="src\Syntaxes\SyntaxAnalyser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Semantics\Node\EmptyNode.h" />
-    <ClInclude Include="src\Semantics\Node\FuncNode.h" />
+    <ClInclude Include="src\Interpretator\DataValue.h" />
+    <ClInclude Include="src\Semantics\Node\FuncData.h" />
     <ClInclude Include="src\Semantics\Node\Node.h" />
+    <ClInclude Include="src\Semantics\Node\NodeData.h" />
     <ClInclude Include="src\Semantics\SemanticTree.h" />
-    <ClInclude Include="src\Lexeme.h" />
-    <ClInclude Include="src\Semantics\Node\VarNode.h" />
-    <ClInclude Include="src\SourceText.h" />
-    <ClInclude Include="src\Types.h" />
-    <ClInclude Include="src\Scanner.h" />
-    <ClInclude Include="src\SyntaxAnalyser.h" />
-    <ClInclude Include="src\SyntaxAnalysisException.h" />
+    <ClInclude Include="src\Lexical\Lexeme.h" />
+    <ClInclude Include="src\Semantics\Node\VarData.h" />
+    <ClInclude Include="src\Lexical\SourceText.h" />
+    <ClInclude Include="src\Lexical\Scanner.h" />
+    <ClInclude Include="src\Syntaxes\SyntaxAnalyser.h" />
+    <ClInclude Include="src\Syntaxes\SyntaxAnalysisException.h" />
+    <ClInclude Include="src\Types\DataType.h" />
+    <ClInclude Include="src\Types\LexemeType.h" />
+    <ClInclude Include="src\Types\SemanticType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

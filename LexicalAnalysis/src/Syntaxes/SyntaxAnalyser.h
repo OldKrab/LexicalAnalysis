@@ -1,5 +1,5 @@
 #pragma once
-#include "Scanner.h"
+#include "Lexical/Scanner.h"
 #include "Semantics/SemanticTree.h"
 
 class SyntaxAnalyser

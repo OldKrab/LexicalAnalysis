@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <fstream>
-#include "Scanner.h"
-#include "SyntaxAnalyser.h"
+#include "Syntaxes/SyntaxAnalyser.h"
+
 int main()
 {
 	setlocale(LC_ALL, "rus");
@@ -16,6 +16,5 @@ int main()
 		return 1;
 	}
 	std::cout << "Analysis success";
-
 	return 0;
 }

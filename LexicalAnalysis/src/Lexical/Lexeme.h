@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
 
-#include "Types.h"
 #include "SourceText.h"
+#include "Types/LexemeType.h"
 
 struct Lexeme
 {

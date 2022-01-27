@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <map>
 #include <string>
 
@@ -39,18 +39,8 @@ enum class LexemeType : unsigned int
 	Err = 200
 };
 
-enum class DataType
-{
-	Int, Short, Long, Bool, Void, Unknown
-};
-
-enum class SemanticType
-{
-	Func, Var, Empty
-};
-
 inline std::string LexemeTypeToString(LexemeType code) {
-	std::map<LexemeType, std::string> lexicalStrings = {
+	static std::map<LexemeType, std::string> lexicalStrings = {
 		{LexemeType::For, "For"},
 		{LexemeType::Int, "Int"},
 		{LexemeType::Short, "Short"},
@@ -90,27 +80,4 @@ inline std::string LexemeTypeToString(LexemeType code) {
 }
 
 
-inline std::string DataTypeToString(DataType type) {
-	std::map<DataType, std::string> semStrings = {
-		{DataType::Bool, "Bool"},
-		{DataType::Unknown, "Unknown"},
-		{DataType::Int, "Int"},
-		{DataType::Long, "Long"},
-		{DataType::Short, "Short"},
-		{DataType::Void, "Void"},
-	};
-	
-	return semStrings.at(type);
-}
 
-inline DataType LexemeStringToDataType(const std::string& lexStr)
-{
-	std::map<std::string, DataType> semStrings = {
-		{"bool", DataType::Bool},
-		{"int", DataType::Int},
-		{"long", DataType::Long},
-		{"short", DataType::Short},
-		{"void", DataType::Void},
-	};
-	return semStrings.at(lexStr);
-}

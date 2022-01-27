@@ -1,9 +1,7 @@
 ﻿#pragma once
 #include <exception>
 #include <sstream>
-
-#include "SourceText.h"
-
+#include "Lexical/SourceText.h"
 class SyntaxAnalysisException : public std::exception
 {
 public:

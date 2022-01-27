@@ -1,32 +1,24 @@
 ﻿#pragma once
 #include <memory>
 #include <string>
-#include <utility>
+#include "NodeData.h"
+#include "Types/DataType.h"
+#include "Types/SemanticType.h"
 
 struct Node
 {
-	Node(std::string id, Node* parent) :Parent(parent), Identifier(std::move(id)) {}
-	virtual ~Node() = default;
+	Node(Node* parent) :Parent(parent) {}
 
-	virtual void RecPrint(std::ostream& out, int tabCount = 0) const
-	{
-		std::string tab(tabCount, '\t');
-		out << tab;
-		Print(out);
-		if (RightChild)
-			RightChild->RecPrint(out, tabCount + 1);
-		if (LeftChild)
-			LeftChild->RecPrint(out, tabCount);
-		
-	}
+	void RecursivePrint(std::ostream& out, int tabCount = 0) const;
 
-	virtual DataType GetDataType() const = 0;
-	virtual SemanticType GetSemanticType() const = 0;
+	std::unique_ptr<Node> CloneRecursive() const;
+
+	DataType GetDataType() const { return Data ? Data->GetDataType() : DataType::Unknown; }
+
+	SemanticType GetSemanticType() const { return Data ? Data->GetSemanticType() : SemanticType::Empty; }
 
 	Node* Parent = nullptr;
 	std::unique_ptr<Node> LeftChild, RightChild;
-	std::string Identifier;
+	std::unique_ptr<NodeData> Data;
 
-protected:
-	virtual void Print(std::ostream& out) const = 0;
 };

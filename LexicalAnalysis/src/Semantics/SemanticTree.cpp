@@ -1,11 +1,15 @@
 #include "SemanticTree.h"
 
-#include "Node/EmptyNode.h"
-#include "Node/VarNode.h"
-#include "Node/FuncNode.h"
+#include "Types/DataType.h"
+#include "Types/LexemeType.h"
+#include "Types/SemanticType.h"
+#include <memory>
+
+#include "Node/FuncData.h"
+#include "Node/VarData.h"
 
 SemanticTree::SemanticTree()
-	:_rootNode(std::make_unique<EmptyNode>(nullptr)),
+	:_rootNode(std::make_unique<Node>(nullptr)),
 	_currNode(_rootNode.get())
 {}
 
@@ -14,23 +18,22 @@ void SemanticTree::SetCurrentNode(Node* node)
 	_currNode = node;
 }
 
-
-
 Node* SemanticTree::AddVariable(DataType type, const std::string& id)
 {
-	_currNode->LeftChild = std::make_unique<VarNode>(_currNode, id, type, false);
+	_currNode->LeftChild = std::make_unique<Node>(_currNode);
+	_currNode->LeftChild->Data = std::make_unique<VarData>(id, type);
 	SetCurrentNode(_currNode->LeftChild.get());
 	return _currNode;
 }
 
 void SemanticTree::SetVariableInitialized(Node* varNode)
 {
-	dynamic_cast<VarNode*>(varNode)->IsInitialized = true;
+	dynamic_cast<VarData*>(varNode->Data.get())->IsInitialized = true;
 }
 
 bool SemanticTree::GetVariableInitialized(Node* varNode)
 {
-	return dynamic_cast<VarNode*>(varNode)->IsInitialized;
+	return dynamic_cast<VarData*>(varNode->Data.get())->IsInitialized;
 }
 
 bool SemanticTree::CheckUniqueIdentifier(const std::string& id) const
@@ -116,7 +119,8 @@ bool SemanticTree::CheckCastable(DataType from, DataType to)
 
 Node* SemanticTree::AddFunc(const std::string& id)
 {
-	_currNode->LeftChild = std::make_unique<FuncNode>(_currNode, id);
+	_currNode->LeftChild = std::make_unique<Node>(_currNode);
+	_currNode->LeftChild->Data = std::make_unique<FuncData>(id);
 	const auto funcNode = _currNode->LeftChild.get();
 	SetCurrentNode(funcNode);
 	AddScope();
@@ -125,25 +129,25 @@ Node* SemanticTree::AddFunc(const std::string& id)
 
 Node* SemanticTree::AddEmpty()
 {
-	_currNode->LeftChild = std::make_unique<EmptyNode>(_currNode);
+	_currNode->LeftChild = std::make_unique<Node>(_currNode);
 	SetCurrentNode(_currNode->LeftChild.get());
 	return _currNode;
 }
 
 void SemanticTree::AddParam(Node* funcNode, const std::string& id, DataType type)
 {
-	auto func = dynamic_cast<FuncNode*>(funcNode);
-	func->ParamsCount++;
+	auto funcData = dynamic_cast<FuncData*>(funcNode->Data.get());
+	funcData->ParamsCount++;
 	auto node = AddVariable(type, id);
 	SetVariableInitialized(node);
 }
 
 std::vector<DataType> SemanticTree::GetFuncParams(Node* funcNode)
 {
-	const auto funcNodeD = dynamic_cast<FuncNode*>(funcNode);
-	auto paramNode = funcNodeD->RightChild->LeftChild.get();
-	std::vector<DataType> paramsTypes(funcNodeD->ParamsCount);
-	for (int i = 0; i < funcNodeD->ParamsCount; i++)
+	const auto funcData = dynamic_cast<FuncData*>(funcNode->Data.get());
+	auto paramNode = funcNode->RightChild->LeftChild.get();
+	std::vector<DataType> paramsTypes(funcData->ParamsCount);
+	for (int i = 0; i < funcData->ParamsCount; i++)
 	{
 		paramsTypes[i] = paramNode->GetDataType();
 		paramNode = paramNode->LeftChild.get();
@@ -153,21 +157,20 @@ std::vector<DataType> SemanticTree::GetFuncParams(Node* funcNode)
 
 void SemanticTree::AddScope()
 {
-	_currNode->RightChild = std::make_unique<EmptyNode>(_currNode);
+	_currNode->RightChild = std::make_unique<Node>(_currNode);
 	SetCurrentNode(_currNode->RightChild.get());
 }
 
 void SemanticTree::Print(std::ostream& out) const
 {
-	_rootNode->RecPrint(out);
+	_rootNode->RecursivePrint(out);
 }
 
 Node* SemanticTree::FindNodeUp(const std::string& id) const
 {
 	auto node = _currNode;
-	while (node->Parent && node->Identifier != id) {
+	while (node->Parent && (node->Data == nullptr || node->Data->Identifier != id)) {
 		node = node->Parent;
-
 	}
 	return node;
 }
@@ -176,7 +179,7 @@ Node* SemanticTree::FindNodeUpInScope(const std::string& id) const
 {
 	auto node = _currNode;
 	auto par = _currNode->Parent;
-	while (par && par->RightChild.get() != node && node->Identifier != id) {
+	while (par && par->RightChild.get() != node && (node->Data == nullptr || node->Data->Identifier != id)) {
 		node = par;
 		par = node->Parent;
 

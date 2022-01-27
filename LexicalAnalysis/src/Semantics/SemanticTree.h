@@ -1,10 +1,12 @@
 #pragma once
+#include <iostream>
 #include <memory>
 #include <vector>
 
-#include "Lexeme.h"
-#include "Types.h"
+#include "Lexical/Lexeme.h"
 #include "Node/Node.h"
+#include "Types/DataType.h"
+#include "Types/LexemeType.h"
 
 class SemanticTree
 {
@@ -31,7 +33,7 @@ public:
 	Node* AddEmpty();
 
 	void AddScope();
-	void Print(std::ostream& out) const;
+	void Print(std::ostream& out = std::cout) const;
 
 	Node* FindNodeUp(const std::string& id) const;
 	Node* FindNodeUpInScope(const std::string& id) const;

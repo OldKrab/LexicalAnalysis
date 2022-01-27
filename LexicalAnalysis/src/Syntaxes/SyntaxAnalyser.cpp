@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stack>
 #include "SyntaxAnalysisException.h"
-#include "Semantics/Node/VarNode.h"
+#include "Types/SemanticType.h"
 
 
 void SyntaxAnalyser::Program()
@@ -18,8 +18,6 @@ void SyntaxAnalyser::Program()
 			WrongType(lex);
 		lex = scanner->LookForward(1);
 	}
-	std::cout << "Semantic tree:\n";
-	semTree->Print(std::cout);
 }
 
 void SyntaxAnalyser::FuncDecl()
@@ -148,6 +146,7 @@ void SyntaxAnalyser::Stat()
 
 void SyntaxAnalyser::CompStat()
 {
+	
 	auto lex = scanner->NextScan();		// Scan {
 	if (lex.type != LexemeType::OpenBrace)
 		WrongExpected("{", lex);
@@ -164,6 +163,14 @@ void SyntaxAnalyser::CompStat()
 	lex = scanner->NextScan();					// Scan }
 
 	semTree->SetCurrentNode(node);				// Restore empty node
+
+	std::cout << "----------------------CREATE------------------------------\n";
+	semTree->Print();
+	node->RightChild.reset();
+
+	std::cout << "------------------------DELETE----------------------------\n";
+	semTree->Print();
+
 }
 
 void SyntaxAnalyser::For()
@@ -337,7 +344,7 @@ DataType SyntaxAnalyser::PostfixExpr()
 		if (funcNode->GetSemanticType() == SemanticType::Empty)			// Check defined var
 			UndefinedError(lex);
 		if (funcNode->GetSemanticType() != SemanticType::Func)			// Check is func
-			UseNotFuncError(funcNode->Identifier, lex);
+			UseNotFuncError(funcNode->Data->Identifier, lex);
 
 		scanner->NextScan();											// Scan (
 
@@ -366,7 +373,7 @@ DataType SyntaxAnalyser::PostfixExpr()
 		}
 
 		if (argsCount != paramsTypes.size())
-			WrongArgsCount(paramsTypes.size(), argsCount, funcNode->Identifier, lex);
+			WrongArgsCount(paramsTypes.size(), argsCount, funcNode->Data->Identifier, lex);
 
 		scanner->NextScan();											// Scan )
 		if (lex.type != LexemeType::ClosePar)
@@ -414,7 +421,7 @@ DataType SyntaxAnalyser::PrimExpr()
 		if (node->GetSemanticType() == SemanticType::Func)
 			UseFuncAsVarError(lex);
 		if (!semTree->GetVariableInitialized(node))
-			VarIsNotInitError(node->Identifier, lex);
+			VarIsNotInitError(node->Data->Identifier, lex);
 
 		return node->GetDataType();
 	}
