@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stack>
 #include "SyntaxAnalysisException.h"
+#include "Semantics/Node/VarData.h"
 #include "Types/SemanticType.h"
 
 
@@ -64,7 +65,7 @@ void SyntaxAnalyser::DataDecl()
 	if (!IsType(lex.type))
 		WrongType(lex);
 
-	const auto leftType = LexemeStringToDataType(lex.str);					// Get data type
+	const auto leftType = LexemeStringToDataType(lex.str);				// Get data type
 	do
 	{
 		lex = scanner->NextScan();										//Scan Id
@@ -79,12 +80,12 @@ void SyntaxAnalyser::DataDecl()
 		lex = scanner->NextScan();										//Scan '=', ',', ';'
 
 		if (lex.type == LexemeType::Assign) {
-			const auto rightType = AssignExpr();								// Get data type of right expression
+			const auto rightValue = AssignExpr();								// Get data type of right expression
 
-			if (!semTree->CheckCastable(rightType, leftType))	// Check castable
-				UncastableError(leftType, rightType, lex);
+			if (!semTree->CheckCastable(rightValue.type, leftType))	// Check castable
+				UncastableError(rightValue.type, leftType, lex);
 
-			semTree->SetVariableInitialized(varNode);					// Set var is initialized
+			semTree->SetVariableValue(varNode, rightValue);
 
 			lex = scanner->NextScan();									//Scan  ',', ';'
 		}
@@ -146,7 +147,7 @@ void SyntaxAnalyser::Stat()
 
 void SyntaxAnalyser::CompStat()
 {
-	
+
 	auto lex = scanner->NextScan();		// Scan {
 	if (lex.type != LexemeType::OpenBrace)
 		WrongExpected("{", lex);
@@ -164,13 +165,9 @@ void SyntaxAnalyser::CompStat()
 
 	semTree->SetCurrentNode(node);				// Restore empty node
 
-	std::cout << "----------------------CREATE------------------------------\n";
-	semTree->Print();
-	node->RightChild.reset();
+	
 
-	std::cout << "------------------------DELETE----------------------------\n";
-	semTree->Print();
-
+	node->RightChild.reset();					// Delete subtree
 }
 
 void SyntaxAnalyser::For()
@@ -183,14 +180,14 @@ void SyntaxAnalyser::For()
 	if (lex.type != LexemeType::OpenPar)
 		WrongExpected("(", lex);
 
-	auto node = semTree->AddEmpty();
+	auto node = semTree->AddEmpty();		// Add empty node, save it
 	semTree->AddScope();
 	DataDecl();
 
 	lex = scanner->LookForward(1);
-	const auto condType = AssignExpr();
-	if (!semTree->CheckCastable(condType, DataType::Bool))
-		UncastableError(condType, DataType::Bool, lex);
+	const auto condValue = AssignExpr();
+	if (!semTree->CheckCastable(condValue.type, DataType::Int))
+		UncastableError(condValue.type, DataType::Int, lex);
 
 	lex = scanner->NextScan();					// Scan ;
 	if (lex.type != LexemeType::Semi)
@@ -205,109 +202,117 @@ void SyntaxAnalyser::For()
 	Stat();
 
 	semTree->SetCurrentNode(node);
+
+	
+	node->RightChild.reset();	// Delete subtree
 }
 
-DataType SyntaxAnalyser::AssignExpr()
+DataValue SyntaxAnalyser::AssignExpr()
 {
 	auto lex = scanner->LookForward(2);
 	if (lex.type == LexemeType::Assign)
 	{
-		lex = scanner->NextScan();									// Scan Id
+		lex = scanner->NextScan();												// Scan Id
 		if (lex.type != LexemeType::Id)
 			WrongId(lex);
 
 		const auto node = semTree->FindNodeUp(lex.str);
-		if (node->GetSemanticType() == SemanticType::Empty)					// Check undefined var
+		if (node->GetSemanticType() == SemanticType::Empty)						// Check undefined var
 			UndefinedError(lex);
-		if (node->GetSemanticType() == SemanticType::Func)					// Check assign to func
+		if (node->GetSemanticType() == SemanticType::Func)						// Check assign to func
 			AssignToFuncError(lex);
 
+		lex = scanner->NextScan();												// Scan =
 
-		const auto leftType = node->GetDataType();					// Get data type of var
+		const auto leftValue = semTree->GetVariableValue(node);					// Get value of expressions
+		auto rightValue = EqualExpr();
 
-		lex = scanner->NextScan();									// Scan =
+		if (!semTree->CheckCastable(rightValue.type, leftValue.type))	// Check castable right to left
+			UncastableError(leftValue.type, rightValue.type, lex);
 
-		const auto rightType = EqualExpr();								// Get sem type of right expression
+		semTree->SetVariableValue(node, rightValue);							// Set right value
 
-		if (!semTree->CheckCastable(rightType, leftType))	// Check castable right to left
-			UncastableError(leftType, rightType, lex);
-
-		semTree->SetVariableInitialized(node);
-
-		return leftType;
+		return semTree->GetVariableValue(node);
 	}
 	return  EqualExpr();
 }
 
-DataType SyntaxAnalyser::EqualExpr()
+DataValue SyntaxAnalyser::EqualExpr()
 {
-	auto leftType = CmpExpr();										// Get sem type of left expr
+	auto leftValue = CmpExpr();												// Get value of left expr
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::E || lex.type == LexemeType::NE)
 	{
-		lex = scanner->NextScan();									// Scan ==, !=
-		const auto rightType = CmpExpr();									// Get sem type of right expr
+		lex = scanner->NextScan();											// Scan ==, !=
+		auto rightValue = CmpExpr();										// Get value of right expr
 
-		leftType = CheckOperationResult(leftType, rightType, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue.type, rightValue.type, lex);
 
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return leftValue;
 }
 
-DataType SyntaxAnalyser::CmpExpr()
+DataValue SyntaxAnalyser::CmpExpr()
 {
-	auto leftType = AddExpr();										// Get sem type of left expr
+	auto leftValue = AddExpr();														// Get value of left expr
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::G || lex.type == LexemeType::GE
 		|| lex.type == LexemeType::L || lex.type == LexemeType::LE)
 	{
-		lex = scanner->NextScan();									// Scan >, >=, <, <=
-		const auto rightType = AddExpr();									// Get sem type of right expr
+		lex = scanner->NextScan();													// Scan >, >=, <, <=
+		const auto rightValue = AddExpr();											// Get sem type of right expr
 
-		leftType = CheckOperationResult(leftType, rightType, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid
+
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return leftValue;
 }
 
-DataType SyntaxAnalyser::AddExpr()
+DataValue SyntaxAnalyser::AddExpr()
 {
-	auto leftType = MultExpr();										// Get sem type of left expr
+	auto leftValue = MultExpr();												// Get sem type of left expr
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Plus
 		|| lex.type == LexemeType::Minus)
 	{
-		scanner->NextScan();										// Scan +, -
-		const auto rightType = MultExpr();								// Get sem type of right expr
+		scanner->NextScan();													// Scan +, -
+		const auto rightValue = MultExpr();										// Get sem type of right expr
 
-		leftType = CheckOperationResult(leftType, rightType, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid and get sem type
+
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return leftValue;
 }
 
-DataType SyntaxAnalyser::MultExpr()
+DataValue SyntaxAnalyser::MultExpr()
 {
-	auto leftType = PrefixExpr();									// Get sem type of left expr
+	auto leftValue = PrefixExpr();									// Get sem type of left expr
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Mul
 		|| lex.type == LexemeType::Div
 		|| lex.type == LexemeType::Modul)
 	{
 		scanner->NextScan();										// Scan *, /, %
-		const auto rightType = PrefixExpr();								// Get sem type of right expr
+		const auto rightValue = PrefixExpr();								// Get sem type of right expr
 
-		leftType = CheckOperationResult(leftType, rightType, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid and get sem type
+
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return leftValue;
 }
 
-DataType SyntaxAnalyser::PrefixExpr()
+DataValue SyntaxAnalyser::PrefixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	std::stack<Lexeme> ops;
@@ -318,103 +323,106 @@ DataType SyntaxAnalyser::PrefixExpr()
 		ops.push(lex);
 		lex = scanner->LookForward(1);
 	}
-	auto type = PostfixExpr();
+	auto value = PostfixExpr();
 
 	while (!ops.empty())
 	{
-		const auto resType = semTree->GetResultDataType(type, ops.top().type);
-		if (resType == DataType::Unknown)
-			OperationArgsError(type, ops.top().str, ops.top());
+		CheckOperationValid(value.type, lex);	// Check operation is valid and get sem type
+		value = semTree->PerformPrefixOperation(lex.type, value);
+
 		ops.pop();
-		type = resType;
 	}
-	return type;
+	return value;
 }
 
-DataType SyntaxAnalyser::PostfixExpr()
+DataValue SyntaxAnalyser::PostfixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	auto lex2 = scanner->LookForward(2);
 	if ((lex.type == LexemeType::Id || lex.type == LexemeType::Main)
 		&& lex2.type == LexemeType::OpenPar)							// func call
 	{
-		lex = scanner->NextScan();										// Scan Id, main
-
-		auto funcNode = semTree->FindNodeUp(lex.str);
-		if (funcNode->GetSemanticType() == SemanticType::Empty)			// Check defined var
-			UndefinedError(lex);
-		if (funcNode->GetSemanticType() != SemanticType::Func)			// Check is func
-			UseNotFuncError(funcNode->Data->Identifier, lex);
-
-		scanner->NextScan();											// Scan (
-
-		auto paramsTypes = semTree->GetFuncParams(funcNode);	// Get func params types
-		size_t argsCount = 0;
-
-		lex = scanner->LookForward(1);
-		if (lex.type != LexemeType::ClosePar)
-		{
-			while (true)
-			{
-				lex = scanner->LookForward(1);						// Save pos of argument
-				auto type = AssignExpr();								// Get type of argument
-
-				if (argsCount < paramsTypes.size() && !semTree->CheckCastable(type, paramsTypes[argsCount]))
-					WrongArgType(paramsTypes[argsCount], type, argsCount + 1, lex);
-
-				++argsCount;
-
-				lex = scanner->LookForward(1);
-				if (lex.type != LexemeType::Comma)
-					break;
-
-				lex = scanner->NextScan();								// Scan ,
-			}
-		}
-
-		if (argsCount != paramsTypes.size())
-			WrongArgsCount(paramsTypes.size(), argsCount, funcNode->Data->Identifier, lex);
-
-		scanner->NextScan();											// Scan )
-		if (lex.type != LexemeType::ClosePar)
-			WrongExpected(")", lex);
-
-		return DataType::Void;
+		FuncCall();
+		return DataValue(DataType::Void);
 	}
-	
-	auto type = PrimExpr();
+
+	auto value = PrimExpr();
 	lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Inc
 		|| lex.type == LexemeType::Dec)
 	{
 		lex = scanner->NextScan();										// Scan ++, --
 
-		auto resType = semTree->GetResultDataType(type, lex.type);
-		if (resType == DataType::Unknown)
-			OperationArgsError(type, lex.str, lex);
+		CheckOperationValid(value.type, lex);
 
-		type = resType;
+		value = semTree->PerformPostfixOperation(value, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return type;
+	return value;
+}
+
+void SyntaxAnalyser::FuncCall()
+{
+	auto lex = scanner->NextScan();							// Scan Id, main
+
+	auto funcNode = semTree->FindNodeUp(lex.str);
+	if (funcNode->GetSemanticType() == SemanticType::Empty)			// Check defined
+		UndefinedError(lex);
+	if (funcNode->GetSemanticType() != SemanticType::Func)			// Check is func
+		UseNotFuncError(funcNode->Data->Identifier, lex);
+
+	scanner->NextScan();											// Scan (
+
+	auto paramsTypes = semTree->GetFuncParams(funcNode);	// Get func params types
+	size_t argsCount = 0;
+
+	lex = scanner->LookForward(1);								
+	// work with arguments
+	if (lex.type != LexemeType::ClosePar)
+	{
+		while (true)
+		{
+			lex = scanner->LookForward(1);						// Save pos of argument
+			auto value = AssignExpr();								// Get argument value
+
+			if (argsCount < paramsTypes.size() && !semTree->CheckCastable(value.type, paramsTypes[argsCount]))
+				WrongArgType(paramsTypes[argsCount], value.type, argsCount + 1, lex);
+
+			++argsCount;
+
+			lex = scanner->LookForward(1);
+			if (lex.type != LexemeType::Comma)
+				break;
+
+			lex = scanner->NextScan();								// Scan ,
+		}
+	}
+
+	if (argsCount != paramsTypes.size())
+		WrongArgsCount(paramsTypes.size(), argsCount, funcNode->Data->Identifier, lex);
+
+	scanner->NextScan();											// Scan )
+	if (lex.type != LexemeType::ClosePar)
+		WrongExpected(")", lex);
 }
 
 
-DataType SyntaxAnalyser::PrimExpr()
+DataValue SyntaxAnalyser::PrimExpr()
 {
 	auto lex = scanner->NextScan();								// Scan DecNum, HexNum, OctNum, Id, Main (
 
-	if (lex.type == LexemeType::OpenPar)
+	if (lex.type == LexemeType::OpenPar)								// (expr)
 	{
-		const auto resType = AssignExpr();
+		const auto resValue = AssignExpr();
 		lex = scanner->NextScan();
 		if (lex.type != LexemeType::ClosePar)
 			WrongExpected(")", lex);
-		return resType;
+		return resValue;
 	}
 
-	if (lex.type == LexemeType::Id || lex.type == LexemeType::Main) {
+	if (lex.type == LexemeType::Id || lex.type == LexemeType::Main)		// identifier
+	{
 		const auto node = semTree->FindNodeUp(lex.str);
 		if (node->GetSemanticType() == SemanticType::Empty)
 			UndefinedError(lex);
@@ -423,27 +431,34 @@ DataType SyntaxAnalyser::PrimExpr()
 		if (!semTree->GetVariableInitialized(node))
 			VarIsNotInitError(node->Data->Identifier, lex);
 
-		return node->GetDataType();
+		return semTree->GetVariableValue(node);
 	}
 
 	if (lex.type == LexemeType::DecimNum || lex.type == LexemeType::HexNum
 		|| lex.type == LexemeType::OctNum)
 	{
-		const auto numType = semTree->GetDataTypeOfNum(lex);
-		if (numType == DataType::Unknown)
+		const auto numValue = semTree->GetValueOfNum(lex);
+		if (numValue.type == DataType::Unknown)
 			WrongNumber(lex);
-
-		return numType;
+		return numValue;
 	}
 
 	ThrowError("Неизвестное выражение: " + lex.str, lex);
 }
 
-DataType SyntaxAnalyser::CheckOperationResult(DataType leftType, DataType rightType, const Lexeme& lex) const
+DataType SyntaxAnalyser::CheckOperationValid(DataType leftType, DataType rightType, const Lexeme& lex) const
 {
 	const auto resType = semTree->GetResultDataType(leftType, rightType, lex.type);
 	if (resType == DataType::Unknown)
 		OperationArgsError(leftType, rightType, lex.str, lex);
+	return resType;
+}
+
+DataType SyntaxAnalyser::CheckOperationValid(DataType type, const Lexeme& lex) const
+{
+	const auto resType = semTree->GetResultDataType(type,  lex.type);
+	if (resType == DataType::Unknown)
+		OperationArgsError(type, lex.str, lex);
 	return resType;
 }
 

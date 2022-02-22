@@ -1,24 +1,22 @@
 #pragma once
+#include "Types/DataType.h"
 
-enum class ValueType
-{
-	Int, Long
-};
 
 struct DataValue
 {
 	DataValue() = default;
-	DataValue(int value) :type(ValueType::Int)
-	{
-		val.int_ = value;
-	}
-	DataValue(long long value) :type(ValueType::Long)
-	{
-		val.long_ = value;
-	}
-	ValueType type;
+	DataValue(int value) :type(DataType::Int), intVal(value)
+	{}
+
+	DataValue(long long value) :type(DataType::Long), longVal(value)
+	{}
+
+	explicit DataValue(DataType type) :type(type), longVal(0)
+	{}
+
+	DataType type;
 	union {
-		int int_;
-		long long long_;
-	} val;
+		int intVal;
+		long long longVal;
+	};
 };

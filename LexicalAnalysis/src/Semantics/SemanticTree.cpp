@@ -1,12 +1,10 @@
 #include "SemanticTree.h"
-
 #include "Types/DataType.h"
 #include "Types/LexemeType.h"
 #include "Types/SemanticType.h"
-#include <memory>
-
 #include "Node/FuncData.h"
 #include "Node/VarData.h"
+#include <memory>
 
 SemanticTree::SemanticTree()
 	:_rootNode(std::make_unique<Node>(nullptr)),
@@ -26,6 +24,33 @@ Node* SemanticTree::AddVariable(DataType type, const std::string& id)
 	return _currNode;
 }
 
+DataValue SemanticTree::GetVariableValue(Node* node)
+{
+	return dynamic_cast<VarData*>(node->Data.get())->Value;
+}
+
+DataValue SemanticTree::CastValue(DataValue value, DataType type)
+{
+	switch (type)
+	{
+	case DataType::Long:
+		if (value.type == DataType::Int)
+			value.intVal = static_cast<int>(value.longVal);
+		break;
+	case DataType::Int:
+		if (value.type == DataType::Int)
+			value.longVal = value.intVal;
+		break;
+	default: break;
+	}
+	if(value.type != type)
+	{
+		std::cout << "Cast from " << DataTypeToString(value.type) << " to " << DataTypeToString(type) << "\n";
+	}
+	value.type = type;
+	return value;
+}
+
 void SemanticTree::SetVariableInitialized(Node* varNode)
 {
 	dynamic_cast<VarData*>(varNode->Data.get())->IsInitialized = true;
@@ -43,6 +68,51 @@ bool SemanticTree::CheckUniqueIdentifier(const std::string& id) const
 }
 
 
+DataValue SemanticTree::PerformOperation(DataValue leftValue, DataValue rightValue, LexemeType operation)
+{
+	// cast before
+	throw std::exception("Not implemented");
+}
+
+DataValue SemanticTree::PerformPrefixOperation(LexemeType operation, DataValue value)
+{
+	throw std::exception("Not implemented");
+}
+
+DataValue SemanticTree::PerformPostfixOperation(DataValue value, LexemeType operation)
+{
+	throw std::exception("Not implemented");
+}
+
+DataValue SemanticTree::GetValueOfNum(Lexeme lex)
+{
+	auto type = GetDataTypeOfNum(lex);
+	switch (type)
+	{
+	case DataType::Int:
+		return DataValue(std::stoi(lex.str,nullptr,0));
+	case DataType::Long:
+		return DataValue(std::stoll(lex.str,nullptr,0));
+	default:
+		return DataValue(DataType::Unknown);
+	}
+}
+
+void SemanticTree::SetVariableValue(Node* node, DataValue value)
+{
+	std::cout << "Node before:\n";
+	node->Print(std::cout);
+
+	auto varData = dynamic_cast<VarData*>(node->Data.get());
+	value = CastValue(value, node->GetDataType());
+	varData->Value = value;
+	SetVariableInitialized(node);
+
+	std::cout << "Node after:\n";
+	node->Print(std::cout);
+	std::cout << "\n";
+}
+
 DataType SemanticTree::GetResultDataType(DataType leftType, DataType rightType, LexemeType operation)
 {
 	if (leftType == DataType::Void || rightType == DataType::Void
@@ -52,7 +122,7 @@ DataType SemanticTree::GetResultDataType(DataType leftType, DataType rightType, 
 	if (operation == LexemeType::E || operation == LexemeType::NE
 		|| operation == LexemeType::G || operation == LexemeType::GE
 		|| operation == LexemeType::L || operation == LexemeType::LE)
-		return DataType::Bool;
+		return DataType::Int;
 
 	if (leftType == DataType::Long || rightType == DataType::Long)
 		return DataType::Long;
@@ -74,6 +144,8 @@ DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 	static std::string MAX_LONG = "9223372036854775807";
 	static std::string MAX_LONG_H = "7FFFFFFFFFFFFFFF";
 	static std::string MAX_LONG_O = "0777777777777777777777";
+	if (lex.str.back() == 'l' || lex.str.back() == 'L')
+		return DataType::Long;
 	if (lex.type == LexemeType::DecimNum)
 	{
 		if (lex.str.size() < MAX_INT.size() || lex.str <= MAX_INT)
@@ -100,7 +172,6 @@ DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 		return  DataType::Unknown;
 	}
 	return DataType::Unknown;
-
 }
 
 bool SemanticTree::CheckDefinedIdentifier(const std::string& id) const

@@ -4,7 +4,12 @@
 
 void VarData::Print(std::ostream& out) const
 {
-	out << "Variable Node: Type = " << DataTypeToString(Type) << ", Id = " << Identifier << ", Is Initialized = " << IsInitialized << "\n";
+	out << "Variable Node: Type = " << DataTypeToString(Type) << ", Id = " << Identifier << ", Value = ";
+	if (Value.type == DataType::Int)
+		out << Value.intVal;
+	else if (Value.type == DataType::Long)
+		out << Value.longVal;
+	out << ", Is Initialized = " << IsInitialized << "\n";
 }
 
 std::unique_ptr<NodeData> VarData::Clone() const

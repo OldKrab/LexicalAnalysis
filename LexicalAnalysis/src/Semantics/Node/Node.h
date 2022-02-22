@@ -9,6 +9,7 @@ struct Node
 {
 	Node(Node* parent) :Parent(parent) {}
 
+	void Print(std::ostream& out, int tabCount = 0) const;
 	void RecursivePrint(std::ostream& out, int tabCount = 0) const;
 
 	std::unique_ptr<Node> CloneRecursive() const;

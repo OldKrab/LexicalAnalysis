@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "Interpretator/DataValue.h"
 #include "Lexical/Lexeme.h"
 #include "Node/Node.h"
 #include "Types/DataType.h"
@@ -18,13 +19,20 @@ public:
 	Node* AddVariable(DataType type, const std::string& id);
 	static void SetVariableInitialized(Node* varNode);
 	static bool GetVariableInitialized(Node* varNode);
-	bool CheckUniqueIdentifier( const std::string& id) const;
-	bool CheckDefinedIdentifier( const std::string& id) const;
+	bool CheckUniqueIdentifier(const std::string& id) const;
+	bool CheckDefinedIdentifier(const std::string& id) const;
 	static bool CheckCastable(DataType from, DataType to);
 
+	static DataValue GetVariableValue(Node* node);
+	static DataValue CastValue(DataValue value, DataType type);
+	static DataValue PerformOperation(DataValue leftValue, DataValue rightValue, LexemeType operation);
+	static DataValue PerformPrefixOperation(LexemeType operation, DataValue value);
+	static DataValue GetValueOfNum(Lexeme lex);
+	static DataValue PerformPostfixOperation(DataValue value, LexemeType operation);
+	static void SetVariableValue(Node* node, DataValue value);
 	static DataType GetResultDataType(DataType leftType, DataType rightType, LexemeType operation);
-	static DataType GetResultDataType(DataType type,  LexemeType operation);
-	DataType GetDataTypeOfNum(Lexeme lex);
+	static DataType GetResultDataType(DataType type, LexemeType operation);
+	static DataType GetDataTypeOfNum(Lexeme lex);
 
 	Node* AddFunc(const std::string& id);
 	void AddParam(Node* funcNode, const std::string& id, DataType type);

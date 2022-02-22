@@ -1,4 +1,5 @@
 #pragma once
+#include "Interpretator/DataValue.h"
 #include "Lexical/Scanner.h"
 #include "Semantics/SemanticTree.h"
 
@@ -19,16 +20,18 @@ private:
 	void CompStat();
 	void For();
 
-	DataType AssignExpr();
-	DataType EqualExpr();
-	DataType CmpExpr();
-	DataType AddExpr();
-	DataType MultExpr();
-	DataType PrefixExpr();
-	DataType PostfixExpr();
-	DataType PrimExpr();
+	DataValue AssignExpr();
+	DataValue EqualExpr();
+	DataValue CmpExpr();
+	DataValue AddExpr();
+	DataValue MultExpr();
+	DataValue PrefixExpr();
+	DataValue PostfixExpr();
+	void FuncCall();
+	DataValue PrimExpr();
 
-	DataType CheckOperationResult(DataType leftType, DataType rightType, const Lexeme& lex) const;
+	DataType CheckOperationValid(DataType leftType, DataType rightType, const Lexeme& lex) const;
+	DataType CheckOperationValid(DataType type, const Lexeme& lex) const;
 
 	[[noreturn]] static void ThrowError(const std::string& mes, const Lexeme& lex);
 	[[noreturn]] static void WrongId(const Lexeme& lex);

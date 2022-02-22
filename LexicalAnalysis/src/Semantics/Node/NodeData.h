@@ -21,6 +21,5 @@ public:
 
 	std::string Identifier;
 
-	~NodeData() = default;
-
+	virtual ~NodeData() = default;
 };

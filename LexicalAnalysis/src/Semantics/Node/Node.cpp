@@ -1,7 +1,7 @@
 #include "Node.h"
 #include <iostream>
 
-void Node::RecursivePrint(std::ostream& out, int tabCount) const
+void Node::Print(std::ostream& out, int tabCount) const
 {
 	std::string tab(tabCount, '\t');
 	out << tab;
@@ -9,6 +9,11 @@ void Node::RecursivePrint(std::ostream& out, int tabCount) const
 		Data->Print(out);
 	else
 		out << "()\n";
+}
+
+void Node::RecursivePrint(std::ostream& out, int tabCount) const
+{
+	Print(out, tabCount);
 	if (RightChild)
 		RightChild->RecursivePrint(out, tabCount + 1);
 	if (LeftChild)
