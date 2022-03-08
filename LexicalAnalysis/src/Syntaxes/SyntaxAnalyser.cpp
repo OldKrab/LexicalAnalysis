@@ -1,11 +1,24 @@
 ﻿#include "SyntaxAnalyser.h"
 
 #include <stack>
-#include "Exceptions/AnalysisException.h"
+#include "Exceptions/AnalysisExceptions.h"
 #include "Semantics/Node/VarData.h"
 #include "Types/SemanticType.h"
 
-	
+
+void SyntaxAnalyser::StartAnalysis()
+{
+	try
+	{
+		Program();
+	}
+	catch (AnalysisException& ex)
+	{
+		auto pos = scanner->GetCurPos();
+		std::cout << "(" << pos.row << ", " << pos.column << "): " << ex.what() << std::endl;
+	}
+}
+
 void SyntaxAnalyser::Program()
 {
 	auto lex = scanner->LookForward(1);
@@ -15,7 +28,7 @@ void SyntaxAnalyser::Program()
 		else if (lex.type == LexemeType::Void)
 			FuncDecl();
 		else
-			WrongType(lex);
+			throw InvalidTypeException(lex.str);
 		lex = scanner->LookForward(1);
 	}
 }
@@ -24,12 +37,13 @@ void SyntaxAnalyser::FuncDecl()
 {
 	auto lex = scanner->NextScan();			//Scan Void
 	if (lex.type != LexemeType::Void)
-		WrongExpected("void", lex);
+		throw NotExpectedLexemeException("void", lex);
 
 	lex = scanner->NextScan();						//Scan Id, Main
 
-	if (!semTree->CheckUniqueIdentifier(lex.str))	// Check unique id
-		RedefinitionError(lex);
+	if (!semTree->CheckUniqueIdentifier(lex.str))					// Check unique id
+		throw RedefinedIdentifierException(lex.str);
+
 
 	const auto funcNode = semTree->AddFunc(lex.str);		// Create func node
 
@@ -37,21 +51,21 @@ void SyntaxAnalyser::FuncDecl()
 	{
 		lex = scanner->NextScan();					//Scan (
 		if (lex.type != LexemeType::OpenPar)
-			WrongExpected("(", lex);
+			throw NotExpectedLexemeException("(", lex);
 		Params(funcNode);
 	}
 	else if (lex.type == LexemeType::Main)
 	{
 		lex = scanner->NextScan();					//Scan (
 		if (lex.type != LexemeType::OpenPar)
-			WrongExpected("(", lex);
+			throw NotExpectedLexemeException("(", lex);
 	}
 	else
-		WrongId(lex);
+		throw InvalidIdentifierException(lex.str);
 
 	lex = scanner->NextScan();						//Scan )
 	if (lex.type != LexemeType::ClosePar)
-		WrongExpected(")", lex);
+		throw NotExpectedLexemeException(")", lex);
 
 	CompStat();
 
@@ -62,37 +76,34 @@ void SyntaxAnalyser::DataDecl()
 {
 	auto lex = scanner->NextScan();								//Scan Type
 	if (!IsDataType(lex.type))
-		WrongType(lex);
+		throw InvalidTypeException(lex.str);
 
 	const auto leftType = LexemeStringToDataType(lex.str);				// Get data type
 	do
 	{
 		lex = scanner->NextScan();										//Scan Id
 		if (lex.type != LexemeType::Id)
-			WrongId(lex);
-
-		if (!semTree->CheckUniqueIdentifier(lex.str))					// Check unique id
-			RedefinitionError(lex);
+			throw InvalidIdentifierException(lex.str);
 
 		const auto varNode = semTree->AddVariable(leftType, lex.str);			// Add variable node
 
-		lex = scanner->NextScan();										//Scan '=', ',', ';'
+		lex = scanner->NextScan();												//Scan '=', ',', ';'
 
 		if (lex.type == LexemeType::Assign) {
 			const auto rightValue = AssignExpr();								// Get data type of right expression
 
-			if (!semTree->CheckCastable(rightValue.type, leftType))	// Check castable
-				UncastableError(rightValue.type, leftType, lex);
+			if (!semTree->CheckCastable(rightValue.type, leftType))		// Check castable
+				throw UncastableVariableException(rightValue.type, leftType);
 
 			semTree->SetVariableValue(varNode, rightValue);
 
-			lex = scanner->NextScan();									//Scan  ',', ';'
+			lex = scanner->NextScan();											//Scan  ',', ';'
 		}
 
 	} while (lex.type == LexemeType::Comma);
 
 	if (lex.type != LexemeType::Semi)
-		WrongExpected(";", lex);
+		throw NotExpectedLexemeException(";", lex);
 }
 
 
@@ -106,13 +117,13 @@ void SyntaxAnalyser::Params(Node* funcNode) const
 	while (true) {
 		lex = scanner->NextScan();						// Scan Type
 		if (!IsDataType(lex.type))
-			WrongType(lex);
+			throw InvalidTypeException(lex.str);
 
 		const auto type = LexemeStringToDataType(lex.str);	// Get data type
 
 		lex = scanner->NextScan();						// Scan Id
 		if (lex.type != LexemeType::Id)
-			WrongId(lex);
+			throw InvalidIdentifierException(lex.str);
 
 		semTree->AddParam(funcNode, lex.str, type);		// Add var node to func as param
 
@@ -140,7 +151,7 @@ void SyntaxAnalyser::Stat()
 
 		lex = scanner->NextScan();					// Scan ;
 		if (lex.type != LexemeType::Semi)
-			WrongExpected(";", lex);
+			throw NotExpectedLexemeException(";", lex);
 	}
 }
 
@@ -149,7 +160,7 @@ void SyntaxAnalyser::CompStat()
 
 	auto lex = scanner->NextScan();		// Scan {
 	if (lex.type != LexemeType::OpenBrace)
-		WrongExpected("{", lex);
+		throw NotExpectedLexemeException("{", lex);
 
 	const auto node = semTree->AddEmpty();		// Add empty node
 	semTree->AddScope();						// Go down
@@ -173,11 +184,11 @@ void SyntaxAnalyser::For()
 {
 	auto lex = scanner->NextScan();		// Scan for
 	if (lex.type != LexemeType::For)
-		WrongExpected("for", lex);
+		throw NotExpectedLexemeException("for", lex);
 
 	lex = scanner->NextScan();					// Scan (
 	if (lex.type != LexemeType::OpenPar)
-		WrongExpected("(", lex);
+		throw NotExpectedLexemeException("(", lex);
 
 	auto node = semTree->AddEmpty();		// Add empty node, save it
 	semTree->AddScope();
@@ -186,17 +197,17 @@ void SyntaxAnalyser::For()
 	lex = scanner->LookForward(1);
 	const auto condValue = AssignExpr();
 	if (!semTree->CheckCastable(condValue.type, DataType::Int))
-		UncastableError(condValue.type, DataType::Int, lex);
+		throw UncastableVariableException(condValue.type, DataType::Int);
 
 	lex = scanner->NextScan();					// Scan ;
 	if (lex.type != LexemeType::Semi)
-		WrongExpected(";", lex);
+		throw NotExpectedLexemeException(";", lex);
 
 	AssignExpr();
 
 	lex = scanner->NextScan();					// Scan )
 	if (lex.type != LexemeType::ClosePar)
-		WrongExpected(")", lex);
+		throw NotExpectedLexemeException(")", lex);
 
 	Stat();
 
@@ -213,13 +224,13 @@ DataValue SyntaxAnalyser::AssignExpr()
 	{
 		lex = scanner->NextScan();												// Scan Id
 		if (lex.type != LexemeType::Id)
-			WrongId(lex);
+			throw InvalidIdentifierException(lex.str);
 
 		const auto node = semTree->FindNodeUp(lex.str);
 		if (node->GetSemanticType() == SemanticType::Empty)						// Check undefined var
-			UndefinedError(lex);
+			throw UndefinedIdentifierException(lex.str);
 		if (node->GetSemanticType() == SemanticType::Func)						// Check assign to func
-			AssignToFuncError(lex);
+			throw UsingFunctionAsVariableException(lex.str);
 
 		lex = scanner->NextScan();												// Scan =
 
@@ -227,7 +238,7 @@ DataValue SyntaxAnalyser::AssignExpr()
 		auto rightValue = EqualExpr();
 
 		if (!semTree->CheckCastable(rightValue.type, leftValue.type))	// Check castable right to left
-			UncastableError(leftValue.type, rightValue.type, lex);
+			throw UncastableVariableException(leftValue.type, rightValue.type);
 
 		semTree->SetVariableValue(node, rightValue);							// Set right value
 
@@ -355,9 +366,9 @@ void SyntaxAnalyser::FuncCall()
 
 	auto funcNode = semTree->FindNodeUp(lex.str);
 	if (funcNode->GetSemanticType() == SemanticType::Empty)			// Check defined
-		UndefinedError(lex);
+		throw UndefinedIdentifierException(lex.str);
 	if (funcNode->GetSemanticType() != SemanticType::Func)			// Check is func
-		UseNotFuncError(funcNode->Data->Identifier, lex);
+		throw UsingVariableAsFunctionException(funcNode->Data->Identifier);
 
 	scanner->NextScan();											// Scan (
 
@@ -374,7 +385,7 @@ void SyntaxAnalyser::FuncCall()
 			auto value = AssignExpr();								// Get argument value
 
 			if (argsCount < paramsTypes.size() && !semTree->CheckCastable(value.type, paramsTypes[argsCount]))
-				WrongArgType(paramsTypes[argsCount], value.type, argsCount + 1, lex);
+				throw UncastableArgumentException(paramsTypes[argsCount], value.type, argsCount + 1, lex.str);
 
 			++argsCount;
 
@@ -387,11 +398,11 @@ void SyntaxAnalyser::FuncCall()
 	}
 
 	if (argsCount != paramsTypes.size())
-		WrongArgsCount(paramsTypes.size(), argsCount, funcNode->Data->Identifier, lex);
+		throw WrongArgsCountException(paramsTypes.size(), argsCount, funcNode->Data->Identifier);
 
 	scanner->NextScan();											// Scan )
 	if (lex.type != LexemeType::ClosePar)
-		WrongExpected(")", lex);
+		throw NotExpectedLexemeException(")", lex);
 }
 
 
@@ -404,7 +415,7 @@ DataValue SyntaxAnalyser::PrimExpr()
 		const auto resValue = AssignExpr();
 		lex = scanner->NextScan();
 		if (lex.type != LexemeType::ClosePar)
-			WrongExpected(")", lex);
+			throw NotExpectedLexemeException(")", lex);
 		return resValue;
 	}
 
@@ -412,11 +423,11 @@ DataValue SyntaxAnalyser::PrimExpr()
 	{
 		const auto node = semTree->FindNodeUp(lex.str);
 		if (node->GetSemanticType() == SemanticType::Empty)
-			UndefinedError(lex);
+			throw UndefinedIdentifierException(lex.str);
 		if (node->GetSemanticType() == SemanticType::Func)
-			UseFuncAsVarError(lex);
+			throw UsingFunctionAsVariableException(lex.str);
 		if (!semTree->GetVariableInitialized(node))
-			VarIsNotInitError(node->Data->Identifier, lex);
+			throw UsingUninitializedVariableException(node->Data->Identifier);
 
 		return semTree->GetVariableValue(node);
 	}
@@ -426,22 +437,22 @@ DataValue SyntaxAnalyser::PrimExpr()
 	{
 		const auto numValue = semTree->GetValueOfNum(lex);
 		if (numValue.type == DataType::Unknown)
-			WrongNumber(lex);
+			throw InvalidNumberException();
 		return numValue;
 	}
 
-	ThrowError("Неизвестное выражение: " + lex.str, lex);
+	throw UnknownLexemeException(lex);
 }
 
 DataType SyntaxAnalyser::CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const
 {
 	const auto resType = semTree->GetResultDataType(leftValue.type, rightValue.type, lex.type);
 	if (resType == DataType::Unknown)
-		OperationArgsError(leftValue.type, rightValue.type, lex.str, lex);
+		throw InvalidOperandsException(leftValue.type, rightValue.type, lex.str);
 	if ((lex.type == LexemeType::Div || lex.type == LexemeType::Modul)
 		&& (rightValue.type == DataType::Long && rightValue.longVal == 0
 			|| rightValue.type == DataType::Int && rightValue.intVal == 0))
-		DivisionOnZero(lex);
+		throw DivisionOnZeroException();
 	return resType;
 }
 
@@ -449,115 +460,16 @@ DataType SyntaxAnalyser::CheckOperationValid(DataValue leftValue, DataValue righ
 DataType SyntaxAnalyser::CheckOperationValid(DataType type, const Lexeme& lex) const
 {
 	if (type == DataType::Unknown)
-		OperationArgsError(type, lex.str, lex);
+		throw InvalidOperandsException(type, lex.str);
 	return type;
 }
 
-bool SyntaxAnalyser::IsTypeForward(LexemeType type, int distance)
+bool SyntaxAnalyser::IsTypeForward(LexemeType type, int distance) const
 {
 	auto lex = scanner->LookForward(distance);
 	return lex.type == type;
 }
 
-
-void SyntaxAnalyser::ThrowError(const std::string& mes, const Lexeme& lex)
-{
-	if (lex.type == LexemeType::End)
-		throw AnalysisException("Неожиданное обнаружение конца файла", lex.pos);
-	throw AnalysisException(mes, lex.pos);
-}
-
-void SyntaxAnalyser::ThrowSemanticError(const std::string& mes, const Lexeme& lex)
-{
-	ThrowError("Semantic Error: " + mes, lex);
-}
-
-void SyntaxAnalyser::ThrowSyntaxError(const std::string& mes, const Lexeme& lex)
-{
-	ThrowError("Syntax Error: " + mes, lex);
-}
-
-void SyntaxAnalyser::WrongId(const Lexeme& lex)
-{
-	ThrowSyntaxError("Недопустимый идентификатор " + lex.str, lex);
-}
-
-void SyntaxAnalyser::WrongType(const Lexeme& lex)
-{
-	ThrowSyntaxError("Недопустимый тип: " + lex.str, lex);
-}
-
-void SyntaxAnalyser::WrongExpected(const std::string& expected, const Lexeme& lex)
-{
-	ThrowSyntaxError("Ожидалось " + expected + ", получено " + lex.str, lex);
-}
-void SyntaxAnalyser::RedefinitionError(const Lexeme& lex)
-{
-	ThrowSemanticError("Идентификатор \"" + lex.str + "\" уже определен", lex);
-}
-
-void SyntaxAnalyser::UndefinedError(const Lexeme& lex)
-{
-	ThrowSemanticError("Идентификатор \"" + lex.str + "\" не определен", lex);
-}
-
-void SyntaxAnalyser::UncastableError(DataType from, DataType to, const Lexeme& lex)
-{
-	ThrowSemanticError("Невозможно привести тип " + DataTypeToString(from) + " к типу " + DataTypeToString(to), lex);
-}
-
-void SyntaxAnalyser::OperationArgsError(DataType leftType, DataType rightType, const std::string& op,
-	const Lexeme& lex)
-{
-	ThrowSemanticError("Невозможно выполнить операцию \"" + op + "\" над типами " + DataTypeToString(leftType) + " и " + DataTypeToString(rightType), lex);
-}
-
-void SyntaxAnalyser::DivisionOnZero(const Lexeme& lex)
-{
-	ThrowSemanticError("Деление на ноль!", lex);
-}
-
-void SyntaxAnalyser::OperationArgsError(DataType type, const std::string& op, const Lexeme& lex)
-{
-	ThrowSemanticError("Невозможно выполнить операцию \"" + op + "\" над типом " + DataTypeToString(type), lex);
-}
-
-void SyntaxAnalyser::WrongNumber(const Lexeme& lex)
-{
-	ThrowSemanticError("Не удалось определить тип константы", lex);
-}
-
-void SyntaxAnalyser::WrongArgsCount(size_t reqCount, size_t givenCount, const std::string& funcId, const Lexeme& lex)
-{
-	ThrowSemanticError("Несоответствие количества параметров и аргументов функции " + funcId
-		+ ": требуется " + std::to_string(reqCount) + ", дано " + std::to_string(givenCount), lex);
-}
-
-void SyntaxAnalyser::WrongArgType(DataType reqType, DataType givenType, size_t argPos, const Lexeme& lex)
-{
-	ThrowSemanticError("Невозможно привести тип аргумента к параметру функции " + lex.str + " на позиции " + std::to_string(argPos) +
-		+": требуется " + DataTypeToString(reqType) + ", дано " + DataTypeToString(givenType), lex);
-}
-
-void SyntaxAnalyser::AssignToFuncError(const Lexeme& lex)
-{
-	ThrowSemanticError("Невозможно присвоить значение функции", lex);
-}
-
-void SyntaxAnalyser::VarIsNotInitError(const std::string& id, const Lexeme& lex)
-{
-	ThrowSemanticError("Переменная " + id + " не инициализирована перед использованием", lex);
-}
-
-void SyntaxAnalyser::UseNotFuncError(const std::string& id, const Lexeme& lex)
-{
-	ThrowSemanticError("Переменная " + id + " не является функцией", lex);
-}
-
-void SyntaxAnalyser::UseFuncAsVarError(const Lexeme& lex)
-{
-	ThrowSemanticError("Использование функции в качестве переменной невозможно", lex);
-}
 
 bool SyntaxAnalyser::IsDataType(LexemeType code)
 {

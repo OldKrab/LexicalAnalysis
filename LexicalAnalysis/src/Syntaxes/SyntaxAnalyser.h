@@ -10,10 +10,10 @@ public:
 		: scanner(std::make_unique<Scanner>(filePath)),
 		semTree(std::make_unique<SemanticTree>())
 	{}
-
-	void Program();
+	void StartAnalysis();
 
 private:
+	void Program();
 	void FuncDecl();
 	void DataDecl();
 	void Params(Node* funcNode) const;
@@ -35,30 +35,8 @@ private:
 	DataType CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const;
 	DataType CheckOperationValid(DataType type, const Lexeme& lex) const;
 
-	 bool IsTypeForward(LexemeType type, int distance = 1);
+	 bool IsTypeForward(LexemeType type, int distance = 1) const;
 	static bool IsDataType(LexemeType code);
-
-
-	// Errors functions
-	[[noreturn]] static void ThrowError(const std::string& mes, const Lexeme& lex);
-	[[noreturn]] static void ThrowSemanticError(const std::string& mes, const Lexeme& lex);
-	[[noreturn]] static void ThrowSyntaxError(const std::string& mes, const Lexeme& lex);
-	[[noreturn]] static void WrongId(const Lexeme& lex);
-	[[noreturn]] static void WrongType(const Lexeme& lex);
-	[[noreturn]] static void WrongExpected(const std::string& expected, const Lexeme& lex);
-	[[noreturn]] static void RedefinitionError(const Lexeme& lex);
-	[[noreturn]] static void UndefinedError(const Lexeme& lex);
-	[[noreturn]] static void UncastableError(DataType from, DataType to, const Lexeme& lex);
-	[[noreturn]] static void OperationArgsError(DataType leftType, DataType rightType, const std::string& op, const Lexeme& lex);
-	[[noreturn]] static void DivisionOnZero(const Lexeme& lex);
-	[[noreturn]] static void OperationArgsError(DataType type, const std::string& op, const Lexeme& lex);
-	[[noreturn]] static void WrongNumber(const Lexeme& lex);
-	[[noreturn]] static void WrongArgsCount(size_t reqCount, size_t givenCount, const std::string& funcId, const Lexeme& lex);
-	[[noreturn]] static void WrongArgType(DataType reqType, DataType givenType, size_t argPos, const Lexeme& lex);
-	[[noreturn]] static void AssignToFuncError(const Lexeme& lex);
-	[[noreturn]] static void VarIsNotInitError(const std::string& id, const Lexeme& lex);
-	[[noreturn]] static void UseNotFuncError(const std::string& id, const Lexeme& lex);
-	[[noreturn]] static void UseFuncAsVarError(const Lexeme& lex);
 
 
 	std::unique_ptr<Scanner> scanner;

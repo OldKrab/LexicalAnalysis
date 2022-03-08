@@ -162,7 +162,7 @@
     <ClInclude Include="src\Lexical\SourceText.h" />
     <ClInclude Include="src\Lexical\Scanner.h" />
     <ClInclude Include="src\Syntaxes\SyntaxAnalyser.h" />
-    <ClInclude Include="src\Exceptions\AnalysisException.h" />
+    <ClInclude Include="src\Exceptions\AnalysisExceptions.h" />
     <ClInclude Include="src\Types\DataType.h" />
     <ClInclude Include="src\Types\LexemeType.h" />
     <ClInclude Include="src\Types\SemanticType.h" />

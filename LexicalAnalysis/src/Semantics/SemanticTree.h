@@ -45,6 +45,9 @@ public:
 	Node* FindNodeUp(const std::string& id) const;
 	Node* FindNodeUpInScope(const std::string& id) const;
 
+
+
+
 private:
 	std::unique_ptr<Node> _rootNode;
 	Node* _currNode;

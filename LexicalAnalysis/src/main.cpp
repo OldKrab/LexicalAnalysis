@@ -8,7 +8,7 @@ int main()
 	std::ofstream fout("output.txt");
 	SyntaxAnalyser analyser("tested.cpp");
 	try {
-		analyser.Program();
+		analyser.StartAnalysis();
 	}
 	catch (std::exception& e)
 	{

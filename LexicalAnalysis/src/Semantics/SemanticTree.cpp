@@ -6,6 +6,8 @@
 #include "Node/VarData.h"
 #include <memory>
 
+#include "Exceptions/AnalysisExceptions.h"
+
 SemanticTree::SemanticTree()
 	:_rootNode(std::make_unique<Node>(nullptr)),
 	_currNode(_rootNode.get())
@@ -301,6 +303,7 @@ bool SemanticTree::CheckCastable(DataType from, DataType to)
 
 Node* SemanticTree::AddFunc(const std::string& id)
 {
+	
 	_currNode->LeftChild = std::make_unique<Node>(_currNode);
 	_currNode->LeftChild->Data = std::make_unique<FuncData>(id);
 	const auto funcNode = _currNode->LeftChild.get();
@@ -368,3 +371,4 @@ Node* SemanticTree::FindNodeUpInScope(const std::string& id) const
 	}
 	return node;
 }
+

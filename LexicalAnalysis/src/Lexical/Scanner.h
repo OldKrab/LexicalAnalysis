@@ -13,6 +13,7 @@ public:
 	void Scan(std::ostream& out);
 	Lexeme NextScan();
 	Lexeme LookForward(int k);
+	SourceText::Iterator GetCurPos() { return curPos; }
 private:
 	void SkipIgnoreChars();
 	void SkipComment();
