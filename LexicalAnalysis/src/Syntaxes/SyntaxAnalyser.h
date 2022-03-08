@@ -35,11 +35,14 @@ private:
 	DataType CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const;
 	DataType CheckOperationValid(DataType type, const Lexeme& lex) const;
 
+	 bool IsTypeForward(LexemeType type, int distance = 1);
 	static bool IsDataType(LexemeType code);
 
 
 	// Errors functions
 	[[noreturn]] static void ThrowError(const std::string& mes, const Lexeme& lex);
+	[[noreturn]] static void ThrowSemanticError(const std::string& mes, const Lexeme& lex);
+	[[noreturn]] static void ThrowSyntaxError(const std::string& mes, const Lexeme& lex);
 	[[noreturn]] static void WrongId(const Lexeme& lex);
 	[[noreturn]] static void WrongType(const Lexeme& lex);
 	[[noreturn]] static void WrongExpected(const std::string& expected, const Lexeme& lex);

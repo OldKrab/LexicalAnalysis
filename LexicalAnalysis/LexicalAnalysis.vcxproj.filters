@@ -50,7 +50,7 @@
     <ClInclude Include="src\Lexical\Lexeme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Syntaxes\SyntaxAnalysisException.h">
+    <ClInclude Include="src\Exceptions\AnalysisException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Semantics\SemanticTree.h">

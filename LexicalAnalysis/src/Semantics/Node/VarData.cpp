@@ -1,6 +1,7 @@
 #include "VarData.h"
 
-#include "Syntaxes/SyntaxAnalysisException.h"
+#include <cassert>
+
 
 void VarData::Print(std::ostream& out) const
 {
@@ -22,7 +23,8 @@ std::unique_ptr<NodeData> VarData::Clone() const
 
 void VarData::SetDefaultValue(DataType type)
 {
-	switch (type)
+	assert(type == DataType::Long || type == DataType::Int);
+	switch (type)  
 	{
 	case DataType::Long:
 		Value = DataValue(0LL);
@@ -30,7 +32,6 @@ void VarData::SetDefaultValue(DataType type)
 	case DataType::Int:
 		Value = DataValue(0);
 		break;
-	default:
-		throw std::exception("Интерпретируются только int и long!");
+	default: break;
 	}
 }

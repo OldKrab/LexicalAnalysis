@@ -1,11 +1,11 @@
 ﻿#include "SyntaxAnalyser.h"
 
 #include <stack>
-#include "SyntaxAnalysisException.h"
+#include "Exceptions/AnalysisException.h"
 #include "Semantics/Node/VarData.h"
 #include "Types/SemanticType.h"
 
-
+	
 void SyntaxAnalyser::Program()
 {
 	auto lex = scanner->LookForward(1);
@@ -453,94 +453,110 @@ DataType SyntaxAnalyser::CheckOperationValid(DataType type, const Lexeme& lex) c
 	return type;
 }
 
+bool SyntaxAnalyser::IsTypeForward(LexemeType type, int distance)
+{
+	auto lex = scanner->LookForward(distance);
+	return lex.type == type;
+}
+
 
 void SyntaxAnalyser::ThrowError(const std::string& mes, const Lexeme& lex)
 {
 	if (lex.type == LexemeType::End)
-		throw SyntaxAnalysisException("Неожиданное обнаружение конца файла", lex.pos);
-	throw SyntaxAnalysisException(mes, lex.pos);
+		throw AnalysisException("Неожиданное обнаружение конца файла", lex.pos);
+	throw AnalysisException(mes, lex.pos);
+}
+
+void SyntaxAnalyser::ThrowSemanticError(const std::string& mes, const Lexeme& lex)
+{
+	ThrowError("Semantic Error: " + mes, lex);
+}
+
+void SyntaxAnalyser::ThrowSyntaxError(const std::string& mes, const Lexeme& lex)
+{
+	ThrowError("Syntax Error: " + mes, lex);
 }
 
 void SyntaxAnalyser::WrongId(const Lexeme& lex)
 {
-	ThrowError("Недопустимый идентификатор " + lex.str, lex);
+	ThrowSyntaxError("Недопустимый идентификатор " + lex.str, lex);
 }
 
 void SyntaxAnalyser::WrongType(const Lexeme& lex)
 {
-	ThrowError("Недопустимый тип: " + lex.str, lex);
+	ThrowSyntaxError("Недопустимый тип: " + lex.str, lex);
 }
 
 void SyntaxAnalyser::WrongExpected(const std::string& expected, const Lexeme& lex)
 {
-	ThrowError("Ожидалось " + expected + ", получено " + lex.str, lex);
+	ThrowSyntaxError("Ожидалось " + expected + ", получено " + lex.str, lex);
 }
 void SyntaxAnalyser::RedefinitionError(const Lexeme& lex)
 {
-	ThrowError("Идентификатор \"" + lex.str + "\" уже определен", lex);
+	ThrowSemanticError("Идентификатор \"" + lex.str + "\" уже определен", lex);
 }
 
 void SyntaxAnalyser::UndefinedError(const Lexeme& lex)
 {
-	ThrowError("Идентификатор \"" + lex.str + "\" не определен", lex);
+	ThrowSemanticError("Идентификатор \"" + lex.str + "\" не определен", lex);
 }
 
 void SyntaxAnalyser::UncastableError(DataType from, DataType to, const Lexeme& lex)
 {
-	ThrowError("Невозможно привести тип " + DataTypeToString(from) + " к типу " + DataTypeToString(to), lex);
+	ThrowSemanticError("Невозможно привести тип " + DataTypeToString(from) + " к типу " + DataTypeToString(to), lex);
 }
 
 void SyntaxAnalyser::OperationArgsError(DataType leftType, DataType rightType, const std::string& op,
 	const Lexeme& lex)
 {
-	ThrowError("Невозможно выполнить операцию \"" + op + "\" над типами " + DataTypeToString(leftType) + " и " + DataTypeToString(rightType), lex);
+	ThrowSemanticError("Невозможно выполнить операцию \"" + op + "\" над типами " + DataTypeToString(leftType) + " и " + DataTypeToString(rightType), lex);
 }
 
 void SyntaxAnalyser::DivisionOnZero(const Lexeme& lex)
 {
-	ThrowError("Деление на ноль!", lex);
+	ThrowSemanticError("Деление на ноль!", lex);
 }
 
 void SyntaxAnalyser::OperationArgsError(DataType type, const std::string& op, const Lexeme& lex)
 {
-	ThrowError("Невозможно выполнить операцию \"" + op + "\" над типом " + DataTypeToString(type), lex);
+	ThrowSemanticError("Невозможно выполнить операцию \"" + op + "\" над типом " + DataTypeToString(type), lex);
 }
 
 void SyntaxAnalyser::WrongNumber(const Lexeme& lex)
 {
-	ThrowError("Не удалось определить тип константы", lex);
+	ThrowSemanticError("Не удалось определить тип константы", lex);
 }
 
 void SyntaxAnalyser::WrongArgsCount(size_t reqCount, size_t givenCount, const std::string& funcId, const Lexeme& lex)
 {
-	ThrowError("Несоответствие количества параметров и аргументов функции " + funcId
+	ThrowSemanticError("Несоответствие количества параметров и аргументов функции " + funcId
 		+ ": требуется " + std::to_string(reqCount) + ", дано " + std::to_string(givenCount), lex);
 }
 
 void SyntaxAnalyser::WrongArgType(DataType reqType, DataType givenType, size_t argPos, const Lexeme& lex)
 {
-	ThrowError("Невозможно привести тип аргумента к параметру функции " + lex.str + " на позиции " + std::to_string(argPos) +
+	ThrowSemanticError("Невозможно привести тип аргумента к параметру функции " + lex.str + " на позиции " + std::to_string(argPos) +
 		+": требуется " + DataTypeToString(reqType) + ", дано " + DataTypeToString(givenType), lex);
 }
 
 void SyntaxAnalyser::AssignToFuncError(const Lexeme& lex)
 {
-	ThrowError("Невозможно присвоить значение функции", lex);
+	ThrowSemanticError("Невозможно присвоить значение функции", lex);
 }
 
 void SyntaxAnalyser::VarIsNotInitError(const std::string& id, const Lexeme& lex)
 {
-	ThrowError("Переменная " + id + " не инициализирована перед использованием", lex);
+	ThrowSemanticError("Переменная " + id + " не инициализирована перед использованием", lex);
 }
 
 void SyntaxAnalyser::UseNotFuncError(const std::string& id, const Lexeme& lex)
 {
-	ThrowError("Переменная " + id + " не является функцией", lex);
+	ThrowSemanticError("Переменная " + id + " не является функцией", lex);
 }
 
 void SyntaxAnalyser::UseFuncAsVarError(const Lexeme& lex)
 {
-	ThrowError("Использование функции в качестве переменной невозможно", lex);
+	ThrowSemanticError("Использование функции в качестве переменной невозможно", lex);
 }
 
 bool SyntaxAnalyser::IsDataType(LexemeType code)
