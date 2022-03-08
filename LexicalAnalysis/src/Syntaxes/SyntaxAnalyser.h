@@ -12,6 +12,7 @@ public:
 	{}
 
 	void Program();
+
 private:
 	void FuncDecl();
 	void DataDecl();
@@ -19,6 +20,8 @@ private:
 	void Stat();
 	void CompStat();
 	void For();
+	void FuncCall();
+
 
 	DataValue AssignExpr();
 	DataValue EqualExpr();
@@ -27,12 +30,15 @@ private:
 	DataValue MultExpr();
 	DataValue PrefixExpr();
 	DataValue PostfixExpr();
-	void FuncCall();
 	DataValue PrimExpr();
 
-	DataType CheckOperationValid(DataType leftType, DataType rightType, const Lexeme& lex) const;
+	DataType CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const;
 	DataType CheckOperationValid(DataType type, const Lexeme& lex) const;
 
+	static bool IsDataType(LexemeType code);
+
+
+	// Errors functions
 	[[noreturn]] static void ThrowError(const std::string& mes, const Lexeme& lex);
 	[[noreturn]] static void WrongId(const Lexeme& lex);
 	[[noreturn]] static void WrongType(const Lexeme& lex);
@@ -41,6 +47,7 @@ private:
 	[[noreturn]] static void UndefinedError(const Lexeme& lex);
 	[[noreturn]] static void UncastableError(DataType from, DataType to, const Lexeme& lex);
 	[[noreturn]] static void OperationArgsError(DataType leftType, DataType rightType, const std::string& op, const Lexeme& lex);
+	[[noreturn]] static void DivisionOnZero(const Lexeme& lex);
 	[[noreturn]] static void OperationArgsError(DataType type, const std::string& op, const Lexeme& lex);
 	[[noreturn]] static void WrongNumber(const Lexeme& lex);
 	[[noreturn]] static void WrongArgsCount(size_t reqCount, size_t givenCount, const std::string& funcId, const Lexeme& lex);
@@ -50,7 +57,6 @@ private:
 	[[noreturn]] static void UseNotFuncError(const std::string& id, const Lexeme& lex);
 	[[noreturn]] static void UseFuncAsVarError(const Lexeme& lex);
 
-	static bool IsType(LexemeType code);
 
 	std::unique_ptr<Scanner> scanner;
 	std::unique_ptr<SemanticTree> semTree;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Types/DataType.h"
-
+#include <iostream>
 
 struct DataValue
 {
@@ -20,3 +20,8 @@ struct DataValue
 		long long longVal;
 	};
 };
+
+inline std::ostream& operator<<(std::ostream& out, const DataValue& value)
+{
+	return out << "(" << DataTypeToString(value.type) << ")" << (value.type == DataType::Long ? value.longVal : value.intVal);
+}

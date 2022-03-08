@@ -23,3 +23,5 @@ struct Node
 	std::unique_ptr<NodeData> Data;
 
 };
+
+std::ostream& operator<<(std::ostream& out, const Node& node);

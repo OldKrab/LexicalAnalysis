@@ -11,6 +11,12 @@ void Node::Print(std::ostream& out, int tabCount) const
 		out << "()\n";
 }
 
+std::ostream& operator<<(std::ostream& out, const Node& node)
+{
+	node.Print(out, 0);
+	return out;
+}
+
 void Node::RecursivePrint(std::ostream& out, int tabCount) const
 {
 	Print(out, tabCount);
@@ -28,3 +34,5 @@ std::unique_ptr<Node> Node::CloneRecursive() const
 	if (RightChild) node->RightChild = RightChild->CloneRecursive();
 	return node;
 }
+
+

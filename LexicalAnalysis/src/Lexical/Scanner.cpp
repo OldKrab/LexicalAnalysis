@@ -6,11 +6,9 @@
  std::unordered_map<std::string, LexemeType> Scanner::keywords = {
  	{"for", LexemeType::For},
  	{"int", LexemeType::Int},
- 	{"short", LexemeType::Short},
  	{"long", LexemeType::Long},
  	{"void", LexemeType::Void},
  	{"main", LexemeType::Main},
- 	{"bool", LexemeType::Bool}
  };
 
 Scanner::Scanner(const std::string& sourceFile)

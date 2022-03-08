@@ -1,6 +1,5 @@
 ﻿#include "SyntaxAnalyser.h"
 
-#include <iostream>
 #include <stack>
 #include "SyntaxAnalysisException.h"
 #include "Semantics/Node/VarData.h"
@@ -11,7 +10,7 @@ void SyntaxAnalyser::Program()
 {
 	auto lex = scanner->LookForward(1);
 	while (lex.type != LexemeType::End) {
-		if (IsType(lex.type))
+		if (IsDataType(lex.type))
 			DataDecl();
 		else if (lex.type == LexemeType::Void)
 			FuncDecl();
@@ -62,7 +61,7 @@ void SyntaxAnalyser::FuncDecl()
 void SyntaxAnalyser::DataDecl()
 {
 	auto lex = scanner->NextScan();								//Scan Type
-	if (!IsType(lex.type))
+	if (!IsDataType(lex.type))
 		WrongType(lex);
 
 	const auto leftType = LexemeStringToDataType(lex.str);				// Get data type
@@ -101,12 +100,12 @@ void SyntaxAnalyser::DataDecl()
 void SyntaxAnalyser::Params(Node* funcNode) const
 {
 	auto lex = scanner->LookForward(1);
-	if (!IsType(lex.type))
+	if (!IsDataType(lex.type))
 		return;
 
 	while (true) {
 		lex = scanner->NextScan();						// Scan Type
-		if (!IsType(lex.type))
+		if (!IsDataType(lex.type))
 			WrongType(lex);
 
 		const auto type = LexemeStringToDataType(lex.str);	// Get data type
@@ -128,7 +127,7 @@ void SyntaxAnalyser::Params(Node* funcNode) const
 void SyntaxAnalyser::Stat()
 {
 	auto lex = scanner->LookForward(1);
-	if (IsType(lex.type))
+	if (IsDataType(lex.type))
 		DataDecl();
 	else if (lex.type == LexemeType::OpenBrace)
 		CompStat();
@@ -165,7 +164,7 @@ void SyntaxAnalyser::CompStat()
 
 	semTree->SetCurrentNode(node);				// Restore empty node
 
-	
+
 
 	node->RightChild.reset();					// Delete subtree
 }
@@ -203,7 +202,7 @@ void SyntaxAnalyser::For()
 
 	semTree->SetCurrentNode(node);
 
-	
+
 	node->RightChild.reset();	// Delete subtree
 }
 
@@ -246,7 +245,7 @@ DataValue SyntaxAnalyser::EqualExpr()
 		lex = scanner->NextScan();											// Scan ==, !=
 		auto rightValue = CmpExpr();										// Get value of right expr
 
-		CheckOperationValid(leftValue.type, rightValue.type, lex);
+		CheckOperationValid(leftValue, rightValue, lex);
 
 		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 		lex = scanner->LookForward(1);
@@ -264,7 +263,7 @@ DataValue SyntaxAnalyser::CmpExpr()
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
 		const auto rightValue = AddExpr();											// Get sem type of right expr
 
-		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid
+		CheckOperationValid(leftValue, rightValue, lex);	// Check operation is valid
 
 		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
@@ -283,7 +282,7 @@ DataValue SyntaxAnalyser::AddExpr()
 		scanner->NextScan();													// Scan +, -
 		const auto rightValue = MultExpr();										// Get sem type of right expr
 
-		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue, rightValue, lex);	// Check operation is valid and get sem type
 
 		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
@@ -303,7 +302,7 @@ DataValue SyntaxAnalyser::MultExpr()
 		scanner->NextScan();										// Scan *, /, %
 		const auto rightValue = PrefixExpr();								// Get sem type of right expr
 
-		CheckOperationValid(leftValue.type, rightValue.type, lex);	// Check operation is valid and get sem type
+		CheckOperationValid(leftValue, rightValue, lex);	// Check operation is valid and get sem type
 
 		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
@@ -327,6 +326,7 @@ DataValue SyntaxAnalyser::PrefixExpr()
 
 	while (!ops.empty())
 	{
+		lex = ops.top();
 		CheckOperationValid(value.type, lex);	// Check operation is valid and get sem type
 		value = semTree->PerformPrefixOperation(lex.type, value);
 
@@ -346,20 +346,7 @@ DataValue SyntaxAnalyser::PostfixExpr()
 		return DataValue(DataType::Void);
 	}
 
-	auto value = PrimExpr();
-	lex = scanner->LookForward(1);
-	while (lex.type == LexemeType::Inc
-		|| lex.type == LexemeType::Dec)
-	{
-		lex = scanner->NextScan();										// Scan ++, --
-
-		CheckOperationValid(value.type, lex);
-
-		value = semTree->PerformPostfixOperation(value, lex.type);
-
-		lex = scanner->LookForward(1);
-	}
-	return value;
+	return PrimExpr();
 }
 
 void SyntaxAnalyser::FuncCall()
@@ -377,7 +364,7 @@ void SyntaxAnalyser::FuncCall()
 	auto paramsTypes = semTree->GetFuncParams(funcNode);	// Get func params types
 	size_t argsCount = 0;
 
-	lex = scanner->LookForward(1);								
+	lex = scanner->LookForward(1);
 	// work with arguments
 	if (lex.type != LexemeType::ClosePar)
 	{
@@ -446,20 +433,24 @@ DataValue SyntaxAnalyser::PrimExpr()
 	ThrowError("Неизвестное выражение: " + lex.str, lex);
 }
 
-DataType SyntaxAnalyser::CheckOperationValid(DataType leftType, DataType rightType, const Lexeme& lex) const
+DataType SyntaxAnalyser::CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const
 {
-	const auto resType = semTree->GetResultDataType(leftType, rightType, lex.type);
+	const auto resType = semTree->GetResultDataType(leftValue.type, rightValue.type, lex.type);
 	if (resType == DataType::Unknown)
-		OperationArgsError(leftType, rightType, lex.str, lex);
+		OperationArgsError(leftValue.type, rightValue.type, lex.str, lex);
+	if ((lex.type == LexemeType::Div || lex.type == LexemeType::Modul)
+		&& (rightValue.type == DataType::Long && rightValue.longVal == 0
+			|| rightValue.type == DataType::Int && rightValue.intVal == 0))
+		DivisionOnZero(lex);
 	return resType;
 }
 
+
 DataType SyntaxAnalyser::CheckOperationValid(DataType type, const Lexeme& lex) const
 {
-	const auto resType = semTree->GetResultDataType(type,  lex.type);
-	if (resType == DataType::Unknown)
+	if (type == DataType::Unknown)
 		OperationArgsError(type, lex.str, lex);
-	return resType;
+	return type;
 }
 
 
@@ -505,6 +496,11 @@ void SyntaxAnalyser::OperationArgsError(DataType leftType, DataType rightType, c
 	ThrowError("Невозможно выполнить операцию \"" + op + "\" над типами " + DataTypeToString(leftType) + " и " + DataTypeToString(rightType), lex);
 }
 
+void SyntaxAnalyser::DivisionOnZero(const Lexeme& lex)
+{
+	ThrowError("Деление на ноль!", lex);
+}
+
 void SyntaxAnalyser::OperationArgsError(DataType type, const std::string& op, const Lexeme& lex)
 {
 	ThrowError("Невозможно выполнить операцию \"" + op + "\" над типом " + DataTypeToString(type), lex);
@@ -547,8 +543,7 @@ void SyntaxAnalyser::UseFuncAsVarError(const Lexeme& lex)
 	ThrowError("Использование функции в качестве переменной невозможно", lex);
 }
 
-bool SyntaxAnalyser::IsType(LexemeType code)
+bool SyntaxAnalyser::IsDataType(LexemeType code)
 {
-	return code == LexemeType::Int || code == LexemeType::Short
-		|| code == LexemeType::Long || code == LexemeType::Bool;
+	return code == LexemeType::Int || code == LexemeType::Long;
 }

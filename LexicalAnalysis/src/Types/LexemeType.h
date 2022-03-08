@@ -6,9 +6,7 @@ enum class LexemeType : unsigned int
 {
 	For = 1,
 	Int = 2,
-	Short = 3,
 	Long = 4,
-	Bool = 5,
 	Main = 6,
 	Void = 7,
 	Id = 10,
@@ -43,9 +41,7 @@ inline std::string LexemeTypeToString(LexemeType code) {
 	static std::map<LexemeType, std::string> lexicalStrings = {
 		{LexemeType::For, "For"},
 		{LexemeType::Int, "Int"},
-		{LexemeType::Short, "Short"},
 		{LexemeType::Long, "Long"},
-		{LexemeType::Bool, "Bool"},
 		{LexemeType::Main, "Main"},
 		{LexemeType::Void, "Void"},
 		{LexemeType::Id, "Id"},

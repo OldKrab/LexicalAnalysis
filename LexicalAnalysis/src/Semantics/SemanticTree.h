@@ -28,10 +28,9 @@ public:
 	static DataValue PerformOperation(DataValue leftValue, DataValue rightValue, LexemeType operation);
 	static DataValue PerformPrefixOperation(LexemeType operation, DataValue value);
 	static DataValue GetValueOfNum(Lexeme lex);
-	static DataValue PerformPostfixOperation(DataValue value, LexemeType operation);
 	static void SetVariableValue(Node* node, DataValue value);
 	static DataType GetResultDataType(DataType leftType, DataType rightType, LexemeType operation);
-	static DataType GetResultDataType(DataType type, LexemeType operation);
+	static void CastOperands(DataValue& leftValue, DataValue& rightValue, LexemeType operation);
 	static DataType GetDataTypeOfNum(Lexeme lex);
 
 	Node* AddFunc(const std::string& id);

@@ -31,23 +31,26 @@ DataValue SemanticTree::GetVariableValue(Node* node)
 
 DataValue SemanticTree::CastValue(DataValue value, DataType type)
 {
+	if (value.type != type)
+		std::cout << "Cast " << value;
+	else
+		return value;
 	switch (type)
 	{
-	case DataType::Long:
-		if (value.type == DataType::Int)
+	case DataType::Int:
+		if (value.type == DataType::Long)
 			value.intVal = static_cast<int>(value.longVal);
 		break;
-	case DataType::Int:
+	case DataType::Long:
 		if (value.type == DataType::Int)
 			value.longVal = value.intVal;
 		break;
 	default: break;
 	}
-	if(value.type != type)
-	{
-		std::cout << "Cast from " << DataTypeToString(value.type) << " to " << DataTypeToString(type) << "\n";
-	}
+
 	value.type = type;
+
+	std::cout << " to " << value << "\n";
 	return value;
 }
 
@@ -70,19 +73,122 @@ bool SemanticTree::CheckUniqueIdentifier(const std::string& id) const
 
 DataValue SemanticTree::PerformOperation(DataValue leftValue, DataValue rightValue, LexemeType operation)
 {
-	// cast before
-	throw std::exception("Not implemented");
+	std::cout << "Perform operation: " << leftValue << " " << LexemeTypeToString(operation) << " " << rightValue << "\n";
+
+	auto resType = GetResultDataType(leftValue.type, rightValue.type, operation);
+	CastOperands(leftValue, rightValue, operation);
+
+	DataValue resValue = DataValue(resType);
+	if (resType == DataType::Long)
+		switch (operation) {
+		case LexemeType::Plus:
+			resValue.longVal = leftValue.longVal + rightValue.longVal;
+			break;
+		case LexemeType::Minus:
+			resValue.longVal = leftValue.longVal - rightValue.longVal;
+			break;
+		case LexemeType::Mul:
+			resValue.longVal = leftValue.longVal * rightValue.longVal;
+			break;
+		case LexemeType::Div:
+			resValue.longVal = leftValue.longVal / rightValue.longVal;
+			break;
+		case LexemeType::Modul:
+			resValue.longVal = leftValue.longVal % rightValue.longVal;
+			break;
+		default:
+			throw std::exception("not known operation");
+		}
+	else
+	{
+		switch (operation) {
+
+		case LexemeType::E:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal == rightValue.intVal : leftValue.longVal == rightValue.longVal;
+			break;
+		case LexemeType::NE:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal != rightValue.intVal : leftValue.longVal != rightValue.longVal;
+			break;
+		case LexemeType::G:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal > rightValue.intVal : leftValue.longVal > rightValue.longVal;
+			break;
+		case LexemeType::L:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal < rightValue.intVal : leftValue.longVal < rightValue.longVal;
+			break;
+		case LexemeType::LE:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal <= rightValue.intVal : leftValue.longVal <= rightValue.longVal;
+			break;
+		case LexemeType::GE:
+			resValue.intVal = leftValue.type == DataType::Int ? leftValue.intVal >= rightValue.intVal : leftValue.longVal >= rightValue.longVal;
+			break;
+		case LexemeType::Plus:
+			resValue.intVal = leftValue.intVal + rightValue.intVal;
+			break;
+		case LexemeType::Minus:
+			resValue.intVal = leftValue.intVal - rightValue.intVal;
+			break;
+		case LexemeType::Mul:
+			resValue.intVal = leftValue.intVal * rightValue.intVal;
+			break;
+		case LexemeType::Div:
+			resValue.intVal = leftValue.intVal / rightValue.intVal;
+			break;
+		case LexemeType::Modul:
+			resValue.intVal = leftValue.intVal % rightValue.intVal;
+			break;
+		default:
+			throw std::exception("not known operation");
+		}
+	}
+
+	std::cout << "Result of operation:" << resValue << "\n\n";
+
+	return resValue;
 }
 
 DataValue SemanticTree::PerformPrefixOperation(LexemeType operation, DataValue value)
 {
-	throw std::exception("Not implemented");
+	std::cout << "Perform operation: " << LexemeTypeToString(operation) << " " << value << "\n";
+
+	DataValue resValue = DataValue(value.type);
+	if (value.type == DataType::Long)
+		switch (operation) {
+		case LexemeType::Plus:
+			resValue.longVal = +value.longVal;
+			break;
+		case LexemeType::Minus:
+			resValue.longVal = -value.longVal;
+			break;
+		case LexemeType::Inc:
+			resValue.longVal = ++value.longVal;
+			break;
+		case LexemeType::Dec:
+			resValue.longVal = --value.longVal;
+			break;
+		}
+	else
+	{
+		switch (operation) {
+		case LexemeType::Plus:
+			resValue.intVal = +value.intVal;
+			break;
+		case LexemeType::Minus:
+			resValue.intVal = -value.intVal;
+			break;
+		case LexemeType::Inc:
+			resValue.intVal = ++value.intVal;
+			break;
+		case LexemeType::Dec:
+			resValue.intVal = --value.intVal;
+			break;
+		}
+	}
+
+	std::cout << "Result of operation:" << resValue << "\n\n";
+
+	return resValue;
 }
 
-DataValue SemanticTree::PerformPostfixOperation(DataValue value, LexemeType operation)
-{
-	throw std::exception("Not implemented");
-}
 
 DataValue SemanticTree::GetValueOfNum(Lexeme lex)
 {
@@ -90,9 +196,9 @@ DataValue SemanticTree::GetValueOfNum(Lexeme lex)
 	switch (type)
 	{
 	case DataType::Int:
-		return DataValue(std::stoi(lex.str,nullptr,0));
+		return DataValue(std::stoi(lex.str, nullptr, 0));
 	case DataType::Long:
-		return DataValue(std::stoll(lex.str,nullptr,0));
+		return DataValue(std::stoll(lex.str, nullptr, 0));
 	default:
 		return DataValue(DataType::Unknown);
 	}
@@ -100,17 +206,14 @@ DataValue SemanticTree::GetValueOfNum(Lexeme lex)
 
 void SemanticTree::SetVariableValue(Node* node, DataValue value)
 {
-	std::cout << "Node before:\n";
-	node->Print(std::cout);
+	std::cout << "Set value " << value << " to " << *node;
 
 	auto varData = dynamic_cast<VarData*>(node->Data.get());
 	value = CastValue(value, node->GetDataType());
 	varData->Value = value;
 	SetVariableInitialized(node);
 
-	std::cout << "Node after:\n";
-	node->Print(std::cout);
-	std::cout << "\n";
+	std::cout << "Node after set: " << *node << "\n";
 }
 
 DataType SemanticTree::GetResultDataType(DataType leftType, DataType rightType, LexemeType operation)
@@ -129,12 +232,20 @@ DataType SemanticTree::GetResultDataType(DataType leftType, DataType rightType, 
 	return DataType::Int;
 }
 
-DataType SemanticTree::GetResultDataType(DataType type, LexemeType operation)
+
+void SemanticTree::CastOperands(DataValue& leftValue, DataValue& rightValue, LexemeType operation)
 {
-	if (type == DataType::Void || type == DataType::Unknown)
-		return DataType::Unknown;
-	return type;
+	if (rightValue.type == DataType::Void || leftValue.type == DataType::Void
+		|| rightValue.type == DataType::Unknown || leftValue.type == DataType::Unknown)
+		return;
+
+	if (leftValue.type == DataType::Long || rightValue.type == DataType::Long)
+	{
+		leftValue = CastValue(leftValue, DataType::Long);
+		rightValue = CastValue(rightValue, DataType::Long);
+	}
 }
+
 
 DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 {
