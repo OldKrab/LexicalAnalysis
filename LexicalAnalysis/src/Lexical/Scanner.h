@@ -9,7 +9,7 @@
 class Scanner
 {
 public:
-	Scanner(const std::string& sourceFile);
+	explicit Scanner(const std::istream& sourceStream);
 	void Scan(std::ostream& out);
 	Lexeme NextScan();
 	Lexeme LookForward(int k);
@@ -28,7 +28,7 @@ private:
 	void HandleDoubleChar(LexemeType firstLexeme, char nextChar, LexemeType secondLexeme);
 
 	bool NextChar();
-	void InputSourceText(const std::string& sourceFile);
+	void InputSourceText(const std::istream& sourceStream);
 
 	SourceText sourceText;
 	SourceText::Iterator curPos;

@@ -15,7 +15,7 @@ void foo2()
 
 void main()
 {
-	foo2();
+	++b;
 }
 
 

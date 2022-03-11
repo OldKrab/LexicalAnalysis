@@ -6,7 +6,8 @@ int main()
 {
 	setlocale(LC_ALL, "rus");
 	std::ofstream fout("output.txt");
-	SyntaxAnalyser analyser("tested.cpp");
+	std::ifstream fin("tested.cpp");
+	SyntaxAnalyser analyser(fin);
 	analyser.PrintAnalysis();
 	return 0;
 }

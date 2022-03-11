@@ -6,8 +6,8 @@
 class SyntaxAnalyser
 {
 public:
-	SyntaxAnalyser(const std::string& filePath)
-		: scanner(std::make_unique<Scanner>(filePath)),
+	SyntaxAnalyser(const std::istream& srcStream)
+		: scanner(std::make_unique<Scanner>(srcStream)),
 		semTree(std::make_unique<SemanticTree>())
 	{}
 	void PrintAnalysis();
@@ -16,21 +16,21 @@ public:
 private:
 	void FuncDecl();
 	void DataDecl();
-	void Params(Node* funcNode) const;
+	void Params(const Node* funcNode) const;
 	void Stat();
 	void CompStat();
 	void For();
 	void FuncCall();
 
 
-	DataValue AssignExpr();
-	DataValue EqualExpr();
-	DataValue CmpExpr();
-	DataValue AddExpr();
-	DataValue MultExpr();
-	DataValue PrefixExpr();
-	DataValue PostfixExpr();
-	DataValue PrimExpr();
+	std::shared_ptr<DataValue> AssignExpr();
+	std::shared_ptr<DataValue> EqualExpr();
+	std::shared_ptr<DataValue> CmpExpr();
+	std::shared_ptr<DataValue> AddExpr();
+	std::shared_ptr<DataValue> MultExpr();
+	std::shared_ptr<DataValue> PrefixExpr();
+	std::shared_ptr<DataValue> PostfixExpr();
+	std::shared_ptr<DataValue> PrimExpr();
 
 
 	static void CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expected);

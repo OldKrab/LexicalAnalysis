@@ -1,9 +1,6 @@
-#include <fstream>
 #include <sstream>
-
 #include "Scanner.h"
 
-#include <iostream>
 
 std::unordered_map<std::string, LexemeType> Scanner::keywords = {
    {"for", LexemeType::For},
@@ -12,20 +9,16 @@ std::unordered_map<std::string, LexemeType> Scanner::keywords = {
    {"void", LexemeType::Void},
    {"main", LexemeType::Main},
 };
-
-Scanner::Scanner(const std::string& sourceFile)
+Scanner::Scanner(const std::istream& sourceStream)
 {
-	InputSourceText(sourceFile);
+	InputSourceText(sourceStream);
 	curPos = sourceText.begin();
 }
 
-
-
-void Scanner::InputSourceText(const std::string& sourceFile)
+void Scanner::InputSourceText(const std::istream& sourceStream)
 {
-	std::ifstream fin(sourceFile);
 	std::stringstream sb;
-	sb << fin.rdbuf();
+	sb << sourceStream.rdbuf();
 	auto source = sb.str();
 	source.push_back(0);
 	sourceText = source;
@@ -42,6 +35,8 @@ Lexeme Scanner::LookForward(int k)
 	curPos = savePos;
 	return lexeme;
 }
+
+
 
 void Scanner::Scan(std::ostream& out)
 {
