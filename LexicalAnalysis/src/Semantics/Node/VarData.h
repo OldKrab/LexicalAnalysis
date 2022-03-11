@@ -26,10 +26,9 @@ public:
 
 	std::unique_ptr<NodeData> Clone() const override;
 
-	void SetValue(DataValue value);
 	void SetDefaultValue(DataType type);
 
 	DataType Type;
-	DataValue Value;
+	std::shared_ptr<DataValue> Value;
 	bool IsInitialized;
 };

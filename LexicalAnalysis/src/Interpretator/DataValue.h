@@ -2,6 +2,7 @@
 #include "Types/DataType.h"
 #include <iostream>
 
+
 struct DataValue
 {
 	DataValue() = default;
@@ -11,15 +12,21 @@ struct DataValue
 	DataValue(long long value) :type(DataType::Long), longVal(value)
 	{}
 
+	DataValue(const DataValue& value) : type(value.type)
+	{
+		longVal = value.longVal;
+	}
+
 	explicit DataValue(DataType type) :type(type), longVal(0)
 	{}
 
-	DataType type = DataType::Int;
+	DataType type;
 	union {
 		int intVal;
 		long long longVal;
 	};
 };
+
 
 inline std::ostream& operator<<(std::ostream& out, const DataValue& value)
 {

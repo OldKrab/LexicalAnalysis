@@ -10,34 +10,34 @@
 #include "Node/VarData.h"
 #include "Types/DataType.h"
 #include "Types/LexemeType.h"
-
 class SemanticTree
 {
 public:
 	SemanticTree();
 
-	Node*  GetCurrentNode() const;
+	Node* GetCurrentNode() const;
 	void SetCurrentNode(Node* node);
 
 	Node* AddVariable(DataType type, const std::string& id);
-	DataValue GetVariableValue(const Node* node) const;
-	DataValue CastValue(DataValue value, DataType type) const;
-	DataValue PerformOperation(DataValue leftValue, DataValue rightValue, LexemeType operation) const;
-	DataValue PerformPrefixOperation(LexemeType operation, DataValue value) const;
-	DataValue GetValueOfNum(Lexeme lex);
-	void SetVariableValue(Node* node, DataValue value) const;
-	void CastOperands(DataValue& leftValue, DataValue& rightValue, LexemeType operation) const;
-	void CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const;
-	void CheckOperationValid(DataType type, const Lexeme& lex) const;
-	void CheckValidFuncArgs(const Node* funcNode, std::vector<DataValue> args) const;
+	std::shared_ptr<DataValue> GetVariableValue(const Node* node) const;
+	void SetVariableValue(const Node* node, const std::shared_ptr<DataValue>& value) const;
+	std::shared_ptr<DataValue> CloneValue(const std::shared_ptr<DataValue>& value) const;
+	void CastValue(DataValue* value, DataType type) const;
+	void PerformOperation(DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const;
+	void PerformPrefixOperation(LexemeType operation, DataValue* value) const;
+	std::shared_ptr<DataValue> ConvertNumLexemeToValue(const Lexeme& lex) const;
+	void CastOperands(DataValue* leftValue, DataValue* rightValue, LexemeType operation) const;
+	void CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, const Lexeme& lex) const;
+	void CheckOperationValid(const DataValue* value, const Lexeme& lex) const;
+	void CheckValidFuncArgs(const Node* funcNode, const std::vector<std::shared_ptr<DataValue>>& args) const;
 
 	Node* AddFunction(const std::string& id);
-	void AddParam(Node* funcNode, const std::string& id, DataType type);
+	void AddParam(const Node* funcNode, const std::string& id, DataType type);
 	void SetFunctionPos(const Node* funcNode, const SourceText::Iterator& pos) const;
 	SourceText::Iterator GetFunctionPos(const Node* funcNode) const;
-	Node* CloneFunctionDefinition( Node* node) const;
-	 Node* GetFunctionBodyNode( Node* funcNode) const;
-	void DeleteFuncDefinition( Node* funcNode) const;
+	Node* CloneFunctionDefinition(Node* node) const;
+	Node* GetFunctionBodyNode(Node* funcNode) const;
+	void DeleteFuncDefinition(Node* funcNode) const;
 
 	Node* AddEmpty();
 	void AddScope();
@@ -45,7 +45,7 @@ public:
 	Node* FindVariableNodeUp(const std::string& id) const;
 	Node* FindFunctionNodeUp(const std::string& id) const;
 
-	void DeleteSubTree(Node* node);
+	void DeleteSubTree(Node* node) const;
 
 	void Print(std::ostream& out = std::cout) const;
 
@@ -56,7 +56,7 @@ private:
 
 	Node* FindNodeUpInScope(const std::string& id) const;
 	Node* FindNodeUp(const std::string& id) const;
-	std::vector<DataType> GetFunctionParams(const Node* funcNode) const;
+	static std::vector<DataType> GetFunctionParams(const Node* funcNode);
 
 	static bool GetVariableInitialized(const Node* varNode);
 	static void SetVariableInitialized(const Node* varNode);
