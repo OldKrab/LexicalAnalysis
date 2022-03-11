@@ -35,7 +35,7 @@ public:
 		Iterator operator++(int) noexcept
 		{
 			auto tmp = *this;
-			++*this;
+			++* this;
 			return tmp;
 		}
 

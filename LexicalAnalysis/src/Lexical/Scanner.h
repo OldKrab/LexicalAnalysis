@@ -14,6 +14,7 @@ public:
 	Lexeme NextScan();
 	Lexeme LookForward(int k);
 	SourceText::Iterator GetCurPos() { return curPos; }
+	void SetCurPos(SourceText::Iterator pos) { curPos = pos; }
 private:
 	void SkipIgnoreChars();
 	void SkipComment();

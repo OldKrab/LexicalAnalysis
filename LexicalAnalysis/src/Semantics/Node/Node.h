@@ -12,14 +12,14 @@ struct Node
 	void Print(std::ostream& out, int tabCount = 0) const;
 	void RecursivePrint(std::ostream& out, int tabCount = 0) const;
 
-	std::unique_ptr<Node> CloneRecursive() const;
+	std::unique_ptr<Node> Clone() const;
 
 	DataType GetDataType() const { return Data ? Data->GetDataType() : DataType::Unknown; }
 
 	SemanticType GetSemanticType() const { return Data ? Data->GetSemanticType() : SemanticType::Empty; }
 
 	Node* Parent = nullptr;
-	std::unique_ptr<Node> LeftChild, RightChild;
+	std::unique_ptr<Node> Siblink, Child;
 	std::unique_ptr<NodeData> Data;
 
 };

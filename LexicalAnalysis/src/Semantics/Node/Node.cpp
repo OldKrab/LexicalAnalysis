@@ -20,18 +20,17 @@ std::ostream& operator<<(std::ostream& out, const Node& node)
 void Node::RecursivePrint(std::ostream& out, int tabCount) const
 {
 	Print(out, tabCount);
-	if (RightChild)
-		RightChild->RecursivePrint(out, tabCount + 1);
-	if (LeftChild)
-		LeftChild->RecursivePrint(out, tabCount);
+	if (Child)
+		Child->RecursivePrint(out, tabCount + 1);
+	if (Siblink)
+		Siblink->RecursivePrint(out, tabCount);
 }
 
-std::unique_ptr<Node> Node::CloneRecursive() const
+std::unique_ptr<Node> Node::Clone() const
 {
 	auto node = std::make_unique<Node>(Parent);
-	node->Data = Data->Clone();
-	if (LeftChild) node->LeftChild = LeftChild->CloneRecursive();
-	if (RightChild) node->RightChild = RightChild->CloneRecursive();
+	if (Data != nullptr)
+		node->Data = Data->Clone();
 	return node;
 }
 

@@ -14,7 +14,7 @@ struct DataValue
 	explicit DataValue(DataType type) :type(type), longVal(0)
 	{}
 
-	DataType type;
+	DataType type = DataType::Int;
 	union {
 		int intVal;
 		long long longVal;

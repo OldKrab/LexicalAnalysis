@@ -1,19 +1,21 @@
-int b = 1;
+int b = 0;
+
 void foo()
 {
-	b = 2;
-	long b = 9999999999999l;
-	int a = b;
-	int c = (b == 9999999999999) >= 1;
-	c = b < 100;
-	b = (- 2 != 2) <= +0 > -1;
-	b = 0xa;
-	a = b + 1 * -11 + 1l;
-	a = a / 2;
-	b = a % 10L;
-	++b;
-	++--a;
-	a = 015 / ((2 + 2) - 2 * 2);
+	for(int i = 0; i < 10; i = i + 1)
+		b = b + 3;
+}
+
+
+void foo2()
+{
+	for(int i = 0; i > 10; i = i + 1)
+		b = b + 3;
+}
+
+void main()
+{
+	foo2();
 }
 
 

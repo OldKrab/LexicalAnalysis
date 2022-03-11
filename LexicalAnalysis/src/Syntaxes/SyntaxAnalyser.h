@@ -10,10 +10,10 @@ public:
 		: scanner(std::make_unique<Scanner>(filePath)),
 		semTree(std::make_unique<SemanticTree>())
 	{}
-	void StartAnalysis();
+	void PrintAnalysis();
 
-private:
 	void Program();
+private:
 	void FuncDecl();
 	void DataDecl();
 	void Params(Node* funcNode) const;
@@ -32,9 +32,8 @@ private:
 	DataValue PostfixExpr();
 	DataValue PrimExpr();
 
-	DataType CheckOperationValid(DataValue leftValue, DataValue rightValue, const Lexeme& lex) const;
-	DataType CheckOperationValid(DataType type, const Lexeme& lex) const;
 
+	static void CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expected);
 	 bool IsTypeForward(LexemeType type, int distance = 1) const;
 	static bool IsDataType(LexemeType code);
 

@@ -150,15 +150,6 @@ public:
 	}
 };
 
-class UncastableArgumentException : public SemanticException
-{
-public:
-	UncastableArgumentException(DataType reqType, DataType givenType, size_t argPos, const std::string& funcId)
-	{
-		message = "Невозможно привести тип аргумента к параметру функции " + funcId + " на позиции " + std::to_string(argPos) +
-			+": требуется " + DataTypeToString(reqType) + ", дано " + DataTypeToString(givenType);
-	}
-};
 
 class UsingUninitializedVariableException : public SemanticException
 {
@@ -174,7 +165,7 @@ class UsingVariableAsFunctionException : public SemanticException
 public:
 	UsingVariableAsFunctionException(const std::string& id)
 	{
-		message = "Переменная " + id + "не является функцией";
+		message = "Переменная " + id + " не является функцией";
 	}
 };
 
@@ -183,6 +174,6 @@ class UsingFunctionAsVariableException : public SemanticException
 public:
 	UsingFunctionAsVariableException(const std::string& id)
 	{
-		message = "Функция " + id + "не может использоваться как переменная";
+		message = "Функция " + id + "vне может использоваться как переменная";
 	}
 };

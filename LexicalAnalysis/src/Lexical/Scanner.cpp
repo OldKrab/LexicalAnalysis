@@ -3,6 +3,8 @@
 
 #include "Scanner.h"
 
+#include <iostream>
+
 std::unordered_map<std::string, LexemeType> Scanner::keywords = {
    {"for", LexemeType::For},
    {"int", LexemeType::Int},
@@ -136,6 +138,7 @@ Lexeme Scanner::NextScan()
 			_lexeme.type = LexemeType::Err;
 		}
 	}
+
 	return _lexeme;
 }
 
