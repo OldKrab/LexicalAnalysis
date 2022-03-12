@@ -36,8 +36,10 @@ Node* SemanticTree::AddVariable(DataType type, const std::string& id)
 {
 	if (!IsInterpretation) return nullptr;
 
-	_currNode->Siblink = make_unique<Node>(_currNode);
-	_currNode->Siblink->Data = make_unique<VarData>(id, type);
+	if (!CheckUniqueIdentifier(id))
+		throw RedefinedIdentifierException(id);
+
+	_currNode->Siblink = make_unique<Node>(_currNode, make_unique<VarData>(id, type));
 	SetCurrentNode(_currNode->Siblink.get());
 	return _currNode;
 }
@@ -77,6 +79,8 @@ void SemanticTree::CastValue(DataValue* value, DataType type) const
 void SemanticTree::PerformOperation(DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const
 {
 	if (!IsInterpretation) return;
+
+	CheckOperationValid(leftValue, rightValue, operation);
 
 	auto rightCastValue = make_shared<DataValue>(*rightValue);
 	CastOperands(leftValue, rightCastValue.get(), operation);
@@ -142,6 +146,8 @@ void SemanticTree::PerformPrefixOperation(LexemeType operation, DataValue* value
 {
 	if (!IsInterpretation) return;
 
+	CheckOperationValid(value, operation);
+
 	if (value->type == DataType::Long)
 		switch (operation) {
 		case LexemeType::Plus:
@@ -205,25 +211,26 @@ std::shared_ptr<DataValue> SemanticTree::CloneValue(const std::shared_ptr<DataVa
 	return IsInterpretation ? std::make_shared<DataValue>(*value) : nullptr;
 }
 
-void SemanticTree::CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, const Lexeme& lex) const
+void SemanticTree::CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const
 {
 	if (!IsInterpretation) return;
 
-	const auto resType = GetResultDataType(leftValue->type, rightValue->type, lex.type);
-	if (resType == DataType::Unknown)
-		throw InvalidOperandsException(leftValue->type, rightValue->type, lex.str);
-	if ((lex.type == LexemeType::Div || lex.type == LexemeType::Modul)
+	if (leftValue->type == DataType::Void || rightValue->type == DataType::Void
+		|| leftValue->type == DataType::Unknown || rightValue->type == DataType::Unknown)
+		throw InvalidOperandsException(leftValue->type, rightValue->type, LexemeTypeToString(operation));
+
+	if ((operation == LexemeType::Div || operation == LexemeType::Modul)
 		&& (rightValue->type == DataType::Long && rightValue->longVal == 0
 			|| rightValue->type == DataType::Int && rightValue->intVal == 0))
 		throw DivisionOnZeroException();
 }
 
-void SemanticTree::CheckOperationValid(const DataValue* value, const Lexeme& lex) const
+void SemanticTree::CheckOperationValid(const DataValue* value, LexemeType operation) const
 {
 	if (!IsInterpretation) return;
 
-	if (value->type == DataType::Unknown)
-		throw InvalidOperandsException(value->type, lex.str);
+	if (value->type == DataType::Unknown || value->type == DataType::Void)
+		throw InvalidOperandsException(value->type, LexemeTypeToString(operation));
 }
 
 void SemanticTree::CheckValidFuncArgs(const Node* funcNode, const std::vector<shared_ptr<DataValue>>& args) const
@@ -259,8 +266,7 @@ Node* SemanticTree::AddFunction(const std::string& id)
 	if (!CheckUniqueIdentifier(id))			// Check unique id
 		throw RedefinedIdentifierException(id);
 
-	_currNode->Siblink = make_unique<Node>(_currNode);
-	_currNode->Siblink->Data = make_unique<FuncData>(id);
+	_currNode->Siblink = make_unique<Node>(_currNode, make_unique<FuncData>(id));
 	const auto funcNode = _currNode->Siblink.get();
 	SetCurrentNode(funcNode);
 	AddScope();
@@ -301,46 +307,49 @@ SourceText::Iterator SemanticTree::GetFunctionPos(const Node* funcNode) const
 }
 
 
-Node* SemanticTree::CloneFunctionDefinition(Node* node) const
+
+Node* SemanticTree::CloneFunctionDefinition(Node* origNode) const
 {
 	if (!IsInterpretation) return nullptr;
+	auto siblink = std::move(origNode->Siblink);		// swap ownerships of siblinks
+	origNode->Siblink = origNode->Clone(origNode);
 
-	auto siblink = std::move(node->Siblink);
-	node->Siblink = node->Clone();
-	node->Siblink->Siblink = std::move(siblink);
-	node->Siblink->Parent = node;
+	auto cloneFuncNode = origNode->Siblink.get();
+	auto cloneNode = cloneFuncNode;
 
-	auto origNode = node;
-	auto cloneNode = node->Siblink.get();
+	cloneNode->Siblink = std::move(siblink);
+	if (cloneNode->Siblink != nullptr)
+		cloneNode->Siblink->Parent = cloneNode;
+	cloneNode->Child = origNode->Child->Clone(cloneNode);
 
 	origNode = origNode->Child.get();
-	cloneNode->Child = origNode->Clone();
 	cloneNode = cloneNode->Child.get();
+
 	while (origNode->Siblink != nullptr)
 	{
-		cloneNode->Siblink = origNode->Siblink->Clone();
+		cloneNode->Siblink = origNode->Siblink->Clone(cloneNode);
 		origNode = origNode->Siblink.get();
 		cloneNode = cloneNode->Siblink.get();
 	}
 
-	return node->Siblink.get();
-}
-
-Node* SemanticTree::GetFunctionBodyNode(Node* funcNode) const
-{
-	if (!IsInterpretation) return nullptr;
-
-	funcNode = funcNode->Child.get();
-	while (funcNode->Siblink != nullptr)
-		funcNode = funcNode->Siblink.get();
-	return funcNode;
+	return cloneFuncNode;
 }
 
 void SemanticTree::DeleteFuncDefinition(Node* funcNode) const
 {
 	if (!IsInterpretation) return;
 
+	funcNode->Siblink->Parent = funcNode->Parent;
 	funcNode->Parent->Siblink = std::move(funcNode->Siblink);
+}
+
+Node* SemanticTree::GetFuncBodyNode(Node* funcNode)
+{
+	funcNode = funcNode->Child.get();
+
+	while (funcNode->Siblink != nullptr)
+		funcNode = funcNode->Siblink.get();
+	return funcNode;
 }
 
 void SemanticTree::AddScope()
@@ -393,9 +402,6 @@ void SemanticTree::SetVariableInitialized(const Node* varNode)
 
 std::vector<DataType> SemanticTree::GetFunctionParams(const Node* funcNode)
 {
-	if (funcNode->GetSemanticType() != SemanticType::Func)
-		throw UsingVariableAsFunctionException(funcNode->Data->Identifier);
-
 	const auto funcData = GetFunctionData(funcNode);
 	auto paramNode = funcNode->Child->Siblink.get();
 	std::vector<DataType> paramsTypes(funcData->ParamsCount);
@@ -437,16 +443,11 @@ bool SemanticTree::GetVariableInitialized(const Node* varNode)
 
 VarData* SemanticTree::GetVariableData(const Node* node)
 {
-	if (node->GetSemanticType() == SemanticType::Func)
-		throw UsingFunctionAsVariableException(node->Data->Identifier);
 	return dynamic_cast<VarData*>(node->Data.get());
 }
 
 DataType SemanticTree::GetResultDataType(DataType leftType, DataType rightType, LexemeType operation)
 {
-	if (leftType == DataType::Void || rightType == DataType::Void
-		|| leftType == DataType::Unknown || rightType == DataType::Unknown)
-		return DataType::Unknown;
 
 	if (leftType == DataType::Long || rightType == DataType::Long)
 		return DataType::Long;
@@ -467,26 +468,26 @@ DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 		return DataType::Long;
 	if (lex.type == LexemeType::DecimNum)
 	{
-		if (lex.str.size() < MAX_INT.size() || lex.str <= MAX_INT)
+		if (lex.str.size() < MAX_INT.size() || lex.str.size() == MAX_INT.size() && lex.str <= MAX_INT)
 			return DataType::Int;
-		if (lex.str.size() < MAX_LONG.size() || lex.str <= MAX_LONG)
+		if (lex.str.size() < MAX_LONG.size() || lex.str.size() == MAX_LONG.size() && lex.str <= MAX_LONG)
 			return DataType::Long;
 		return  DataType::Unknown;
 	}
 	if (lex.type == LexemeType::OctNum)
 	{
-		if (lex.str.size() < MAX_INT_O.size() || lex.str <= MAX_INT_O)
+		if (lex.str.size() < MAX_INT_O.size() || lex.str.size() == MAX_INT_O.size() && lex.str <= MAX_INT_O)
 			return DataType::Int;
-		if (lex.str.size() < MAX_LONG_O.size() || lex.str <= MAX_LONG_O)
+		if (lex.str.size() < MAX_LONG_O.size() || lex.str.size() == MAX_LONG_O.size() && lex.str <= MAX_LONG_O)
 			return DataType::Long;
 		return  DataType::Unknown;
 	}
 	if (lex.type == LexemeType::HexNum)
 	{
 		auto suff = lex.str.substr(2);
-		if (suff.size() < MAX_INT_H.size() || suff <= MAX_INT_H)
+		if (suff.size() < MAX_INT_H.size() ||suff.size() == MAX_INT_H.size() && suff <= MAX_INT_H)
 			return DataType::Int;
-		if (suff.size() < MAX_LONG_H.size() || suff <= MAX_LONG_H)
+		if (suff.size() < MAX_LONG_H.size() || suff.size() == MAX_LONG_H.size() && suff <= MAX_LONG_H)
 			return DataType::Long;
 		return  DataType::Unknown;
 	}
@@ -495,8 +496,6 @@ DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 
 FuncData* SemanticTree::GetFunctionData(const Node* funcNode)
 {
-	if (funcNode->GetSemanticType() == SemanticType::Var)
-		throw UsingVariableAsFunctionException(funcNode->Data->Identifier);
 	return dynamic_cast<FuncData*>(funcNode->Data.get());
 }
 

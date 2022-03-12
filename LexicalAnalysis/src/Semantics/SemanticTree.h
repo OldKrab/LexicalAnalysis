@@ -27,17 +27,16 @@ public:
 	void PerformPrefixOperation(LexemeType operation, DataValue* value) const;
 	std::shared_ptr<DataValue> ConvertNumLexemeToValue(const Lexeme& lex) const;
 	void CastOperands(DataValue* leftValue, DataValue* rightValue, LexemeType operation) const;
-	void CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, const Lexeme& lex) const;
-	void CheckOperationValid(const DataValue* value, const Lexeme& lex) const;
+	
 	void CheckValidFuncArgs(const Node* funcNode, const std::vector<std::shared_ptr<DataValue>>& args) const;
 
 	Node* AddFunction(const std::string& id);
 	void AddParam(const Node* funcNode, const std::string& id, DataType type);
 	void SetFunctionPos(const Node* funcNode, const SourceText::Iterator& pos) const;
 	SourceText::Iterator GetFunctionPos(const Node* funcNode) const;
-	Node* CloneFunctionDefinition(Node* node) const;
-	Node* GetFunctionBodyNode(Node* funcNode) const;
+	Node* CloneFunctionDefinition(Node* origNode) const;
 	void DeleteFuncDefinition(Node* funcNode) const;
+	static Node* GetFuncBodyNode(Node* funcNode);
 
 	Node* AddEmpty();
 	void AddScope();
@@ -53,6 +52,8 @@ public:
 private:
 	bool CheckUniqueIdentifier(const std::string& id) const;
 	static void CheckCastable(DataType from, DataType to);
+	void CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const;
+	void CheckOperationValid(const DataValue* value, LexemeType operation) const;
 
 	Node* FindNodeUpInScope(const std::string& id) const;
 	Node* FindNodeUp(const std::string& id) const;

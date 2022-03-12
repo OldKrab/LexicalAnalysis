@@ -9,5 +9,6 @@ std::unique_ptr<NodeData> FuncData::Clone() const
 {
 	auto data = std::make_unique<FuncData>(Identifier);
 	data->ParamsCount = ParamsCount;
+	data->Pos = Pos;
 	return std::move(data);
 }

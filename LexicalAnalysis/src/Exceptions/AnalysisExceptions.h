@@ -55,16 +55,16 @@ public:
 		if (resultLexeme.type == LexemeType::End)
 			message = "Неожиданное завершение файла";
 		else
-			message = "Ожидалось " + expected + ", получено" + resultLexeme.str;
+			message = "Ожидалось " + expected + ", получено " + resultLexeme.str;
 	}
 };
 
-class UnknownLexemeException : public SyntaxException
+class ExpectedExpressionException : public SyntaxException
 {
 public:
-	UnknownLexemeException(const Lexeme& lexeme)
+	ExpectedExpressionException(const Lexeme& lexeme)
 	{
-		message = "Неизвестное выражение: " + lexeme.str;
+		message = "Ожидалось выражение, получено " + lexeme.str;
 	}
 };
 
@@ -149,7 +149,6 @@ public:
 			+ ": требуется " + std::to_string(reqCount) + ", дано " + std::to_string(givenCount);
 	}
 };
-
 
 class UsingUninitializedVariableException : public SemanticException
 {

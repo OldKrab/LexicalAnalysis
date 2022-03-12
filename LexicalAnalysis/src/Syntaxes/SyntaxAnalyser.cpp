@@ -21,22 +21,23 @@ void SyntaxAnalyser::PrintAnalysis()
 
 void SyntaxAnalyser::Program()
 {
-	auto lex = scanner->LookForward(1);
-	while (lex.type != LexemeType::End) {
-		if (IsDataType(lex.type))
-			DataDecl();
-		else if (lex.type == LexemeType::Void)
+	auto firstLex = scanner->LookForward(1);
+	auto lex = scanner->LookForward(3);
+	while (firstLex.type != LexemeType::End) {
+		if (lex.type == LexemeType::OpenPar)
 			FuncDecl();
 		else
-			throw InvalidTypeException(lex.str);
-		lex = scanner->LookForward(1);
+			DataDecl();
+		firstLex = scanner->LookForward(1);
+		lex = scanner->LookForward(3);
 	}
 }
 
 void SyntaxAnalyser::FuncDecl()
 {
 	auto lex = scanner->NextScan();				//Scan Void
-	CheckExpectedLexeme(lex, LexemeType::Void);
+	if (lex.type != LexemeType::Void)
+		throw InvalidTypeException(lex.str);
 
 	lex = scanner->NextScan();							//Scan Id, Main
 
@@ -48,7 +49,6 @@ void SyntaxAnalyser::FuncDecl()
 	const auto isMain = lex.type == LexemeType::Main;
 
 	lex = scanner->NextScan();							//Scan (
-	CheckExpectedLexeme(lex, LexemeType::OpenPar);
 
 	Params(funcNode);
 
@@ -98,15 +98,16 @@ void SyntaxAnalyser::DataDecl()
 
 void SyntaxAnalyser::Params(const Node* funcNode) const
 {
-	auto lex = scanner->LookForward(1);
-	if (!IsDataType(lex.type))
-		return;
-
 	while (true) {
-		lex = scanner->NextScan();						// Scan Type
-		if (!IsDataType(lex.type))
+
+		auto lex = scanner->LookForward(1);						// Scan Type
+		if(lex.type == LexemeType::Id && scanner->LookForward(2).type == LexemeType::Id)
 			throw InvalidTypeException(lex.str);
 
+		if (!IsDataType(lex.type))
+			return;
+
+		lex = scanner->NextScan();
 		const auto type = LexemeStringToDataType(lex.str);	// Get data type
 
 		lex = scanner->NextScan();						// Scan Id
@@ -126,7 +127,7 @@ void SyntaxAnalyser::Params(const Node* funcNode) const
 void SyntaxAnalyser::Stat()
 {
 	auto lex = scanner->LookForward(1);
-	if (IsDataType(lex.type))
+	if (IsDataType(lex.type) || lex.type == LexemeType::Id && scanner->LookForward(2).type == LexemeType::Id)
 		DataDecl();
 	else if (lex.type == LexemeType::OpenBrace)
 		CompStat();
@@ -147,14 +148,12 @@ void SyntaxAnalyser::Stat()
 void SyntaxAnalyser::CompStat()
 {
 
-	auto lex = scanner->NextScan();		// Scan {
-
-	CheckExpectedLexeme(lex, LexemeType::OpenBrace);
+	scanner->NextScan();						// Scan {
 
 	const auto node = semTree->AddEmpty();		// Add empty node
 	semTree->AddScope();						// Go down
 
-	lex = scanner->LookForward(1);
+	auto lex = scanner->LookForward(1);
 	while (lex.type != LexemeType::CloseBrace)
 	{
 		Stat();
@@ -171,10 +170,9 @@ void SyntaxAnalyser::For()
 {
 	auto savedIsInterpret = semTree->IsInterpretation;
 
-	auto lex = scanner->NextScan();					// Scan for
-	CheckExpectedLexeme(lex, LexemeType::For);
+	scanner->NextScan();									// Scan for
 
-	lex = scanner->NextScan();								// Scan (
+	auto lex = scanner->NextScan();								// Scan (
 	CheckExpectedLexeme(lex, LexemeType::OpenPar);
 
 	auto savedNode = semTree->AddEmpty();
@@ -252,7 +250,6 @@ std::shared_ptr<DataValue> SyntaxAnalyser::EqualExpr()
 	{
 		lex = scanner->NextScan();											// Scan ==, !=
 		auto rightValue = CmpExpr();
-		semTree->CheckOperationValid(leftValue.get(), rightValue.get(), lex);
 
 		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
 		lex = scanner->LookForward(1);
@@ -269,8 +266,6 @@ std::shared_ptr<DataValue> SyntaxAnalyser::CmpExpr()
 	{
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
 		const auto rightValue = AddExpr();
-
-		semTree->CheckOperationValid(leftValue.get(), rightValue.get(), lex);
 
 		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
 
@@ -289,8 +284,6 @@ std::shared_ptr<DataValue> SyntaxAnalyser::AddExpr()
 		scanner->NextScan();													// Scan +, -
 		const auto rightValue = MultExpr();
 
-		semTree->CheckOperationValid(leftValue.get(), rightValue.get(), lex);
-
 		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
 
 		lex = scanner->LookForward(1);
@@ -308,8 +301,6 @@ std::shared_ptr<DataValue> SyntaxAnalyser::MultExpr()
 	{
 		scanner->NextScan();												// Scan *, /, %
 		const auto rightValue = PrefixExpr();
-
-		semTree->CheckOperationValid(leftValue.get(), rightValue.get(), lex);
 
 		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
 
@@ -334,7 +325,6 @@ std::shared_ptr<DataValue> SyntaxAnalyser::PrefixExpr()
 	while (!ops.empty())
 	{
 		lex = ops.top();
-		semTree->CheckOperationValid(value.get(), lex);
 		semTree->PerformPrefixOperation(lex.type, value.get());
 
 		ops.pop();
@@ -389,9 +379,10 @@ void SyntaxAnalyser::FuncCall()
 		auto savedNode = semTree->GetCurrentNode();
 
 		scanner->SetCurPos(semTree->GetFunctionPos(funcNode));
-		auto calledFunc = semTree->CloneFunctionDefinition(funcNode);
+		auto cloneFuncNode = semTree->CloneFunctionDefinition(funcNode);
+		semTree->SetCurrentNode(semTree->GetFuncBodyNode(cloneFuncNode));
 		CompStat();
-		semTree->DeleteFuncDefinition(calledFunc);
+		semTree->DeleteFuncDefinition(cloneFuncNode);
 
 		semTree->SetCurrentNode(savedNode);
 		scanner->SetCurPos(savedPos);
@@ -423,7 +414,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::PrimExpr()
 		return semTree->ConvertNumLexemeToValue(lex);
 	}
 
-	throw UnknownLexemeException(lex);
+	throw ExpectedExpressionException(lex);
 }
 
 void SyntaxAnalyser::CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expectedType)

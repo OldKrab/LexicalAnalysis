@@ -13,6 +13,8 @@ public:
 	void PrintAnalysis();
 
 	void Program();
+
+	SemanticTree* GetSemTree() { return semTree.get(); }
 private:
 	void FuncDecl();
 	void DataDecl();
@@ -34,7 +36,7 @@ private:
 
 
 	static void CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expected);
-	 bool IsTypeForward(LexemeType type, int distance = 1) const;
+	bool IsTypeForward(LexemeType type, int distance = 1) const;
 	static bool IsDataType(LexemeType code);
 
 

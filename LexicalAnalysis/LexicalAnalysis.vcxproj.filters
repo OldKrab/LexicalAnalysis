@@ -15,54 +15,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Lexical\Scanner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Semantics\SemanticTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Syntaxes\SyntaxAnalyser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Semantics\Node\Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Semantics\Node\FuncData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Semantics\Node\VarData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="src\Exceptions\AnalysisExceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Interpretator\DataValue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Lexical\Lexeme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Lexical\Scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Lexical\SourceText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Syntaxes\SyntaxAnalyser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Lexical\Lexeme.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Exceptions\AnalysisExceptions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Semantics\SemanticTree.h">
+    <ClInclude Include="src\Semantics\Node\FuncData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Semantics\Node\Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Semantics\Node\NodeData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Semantics\Node\VarData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Interpretator\DataValue.h">
+    <ClInclude Include="src\Semantics\SemanticTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Syntaxes\SyntaxAnalyser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Types\DataType.h">
@@ -74,11 +57,28 @@
     <ClInclude Include="src\Types\SemanticType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Semantics\Node\NodeData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Semantics\Node\FuncData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Lexical\Scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Semantics\Node\FuncData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Semantics\Node\Node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Semantics\Node\VarData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Semantics\SemanticTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Syntaxes\SyntaxAnalyser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

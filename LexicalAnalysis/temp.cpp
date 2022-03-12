@@ -1,5 +1,6 @@
-void foo(int a, int b){}
-void main(){ foo(1); }
+﻿
+
+
 
 
 //void foo(int a){ int b = a; }		// параметр всегда инициализирован

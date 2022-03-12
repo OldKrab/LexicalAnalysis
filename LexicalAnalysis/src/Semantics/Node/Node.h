@@ -8,15 +8,16 @@
 struct Node
 {
 	Node(Node* parent) :Parent(parent) {}
+	Node(Node* parent,std::unique_ptr<NodeData> data) :Parent(parent), Data(std::move(data)) {}
 
 	void Print(std::ostream& out, int tabCount = 0) const;
 	void RecursivePrint(std::ostream& out, int tabCount = 0) const;
 
-	std::unique_ptr<Node> Clone() const;
-
 	DataType GetDataType() const { return Data ? Data->GetDataType() : DataType::Unknown; }
 
 	SemanticType GetSemanticType() const { return Data ? Data->GetSemanticType() : SemanticType::Empty; }
+
+	std::unique_ptr<Node> Clone(Node* parent) const;
 
 	Node* Parent = nullptr;
 	std::unique_ptr<Node> Siblink, Child;

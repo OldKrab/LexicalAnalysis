@@ -9,6 +9,7 @@ std::unordered_map<std::string, LexemeType> Scanner::keywords = {
    {"void", LexemeType::Void},
    {"main", LexemeType::Main},
 };
+
 Scanner::Scanner(const std::istream& sourceStream)
 {
 	InputSourceText(sourceStream);

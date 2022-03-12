@@ -26,12 +26,12 @@ void Node::RecursivePrint(std::ostream& out, int tabCount) const
 		Siblink->RecursivePrint(out, tabCount);
 }
 
-std::unique_ptr<Node> Node::Clone() const
+std::unique_ptr<Node> Node::Clone(Node* parent) const
 {
-	auto node = std::make_unique<Node>(Parent);
-	if (Data != nullptr)
-		node->Data = Data->Clone();
-	return node;
+	if (Data) return std::make_unique<Node>(parent, Data->Clone());
+	return std::make_unique<Node>(parent);
 }
+
+
 
 
