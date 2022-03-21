@@ -5,18 +5,17 @@
 
 void SyntaxAnalyser::PrintAnalysis()
 {
-	/*try
+	try
 	{
 		Program();
+		semTree->Print();
 	}
 	catch (AnalysisException& ex)
 	{
 		auto pos = scanner->GetCurPos();
 		std::cout << "(" << pos.row << ", " << pos.column << "): " << ex.what() << std::endl;
-	}*/
-	Program();
 
-	semTree->Print();
+	}
 }
 
 void SyntaxAnalyser::Program()
@@ -101,7 +100,7 @@ void SyntaxAnalyser::Params(const Node* funcNode) const
 	while (true) {
 
 		auto lex = scanner->LookForward(1);						// Scan Type
-		if(lex.type == LexemeType::Id && scanner->LookForward(2).type == LexemeType::Id)
+		if (lex.type == LexemeType::Id && scanner->LookForward(2).type == LexemeType::Id)
 			throw InvalidTypeException(lex.str);
 
 		if (!IsDataType(lex.type))
@@ -234,7 +233,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::AssignExpr()
 
 		lex = scanner->NextScan();										// Scan =
 
-		semTree->SetVariableValue(node, EqualExpr());
+		semTree->SetVariableValue(node, semTree->CloneValue(EqualExpr()));
 
 		auto value = semTree->GetVariableValue(node);
 		return value;
@@ -251,7 +250,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::EqualExpr()
 		lex = scanner->NextScan();											// Scan ==, !=
 		auto rightValue = CmpExpr();
 
-		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 		lex = scanner->LookForward(1);
 	}
 	return leftValue;
@@ -267,7 +266,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::CmpExpr()
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
 		const auto rightValue = AddExpr();
 
-		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
@@ -284,7 +283,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::AddExpr()
 		scanner->NextScan();													// Scan +, -
 		const auto rightValue = MultExpr();
 
-		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
@@ -302,7 +301,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::MultExpr()
 		scanner->NextScan();												// Scan *, /, %
 		const auto rightValue = PrefixExpr();
 
-		semTree->PerformOperation(leftValue.get(), rightValue.get(), lex.type);
+		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
@@ -325,7 +324,7 @@ std::shared_ptr<DataValue> SyntaxAnalyser::PrefixExpr()
 	while (!ops.empty())
 	{
 		lex = ops.top();
-		semTree->PerformPrefixOperation(lex.type, value.get());
+		value = semTree->PerformPrefixOperation(lex.type, value);
 
 		ops.pop();
 	}
@@ -361,7 +360,8 @@ void SyntaxAnalyser::FuncCall()
 	{
 		do
 		{
-			args.push_back(AssignExpr());
+			auto value = AssignExpr();
+			args.push_back(value);
 
 			lex = scanner->NextScan();								// Scan ,
 		} while (lex.type == LexemeType::Comma);
@@ -380,7 +380,9 @@ void SyntaxAnalyser::FuncCall()
 
 		scanner->SetCurPos(semTree->GetFunctionPos(funcNode));
 		auto cloneFuncNode = semTree->CloneFunctionDefinition(funcNode);
-		semTree->SetCurrentNode(semTree->GetFuncBodyNode(cloneFuncNode));
+
+		semTree->SetCurrentNode(cloneFuncNode);
+		semTree->AssignParamsWithArgs(args);
 		CompStat();
 		semTree->DeleteFuncDefinition(cloneFuncNode);
 

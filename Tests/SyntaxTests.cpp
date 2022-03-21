@@ -13,7 +13,6 @@ namespace SyntaxTests
 
 		TEST_METHOD(InvalidFunctionIdentifier)
 		{
-
 			ExpectException<InvalidIdentifierException>(R"(
 					void for(){}
 				)");

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <utility>
 
-#include "Interpretator/DataValue.h"
+#include "DataValue.h"
 #include "Types/DataType.h"
 
 class VarData : public NodeData

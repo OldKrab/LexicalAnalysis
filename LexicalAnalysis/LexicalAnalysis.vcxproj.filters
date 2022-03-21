@@ -18,7 +18,7 @@
     <ClInclude Include="src\Exceptions\AnalysisExceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Interpretator\DataValue.h">
+    <ClInclude Include="src\Semantics\Node\DataValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Lexical\Lexeme.h">

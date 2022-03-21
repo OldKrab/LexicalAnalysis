@@ -76,88 +76,96 @@ void SemanticTree::CastValue(DataValue* value, DataType type) const
 	value->type = type;
 }
 
-void SemanticTree::PerformOperation(DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const
+shared_ptr<DataValue> SemanticTree::PerformOperation(shared_ptr<DataValue> leftValue, shared_ptr<DataValue> rightValue, LexemeType operation) const
 {
-	if (!IsInterpretation) return;
+	if (!IsInterpretation) return nullptr;
 
 	CheckOperationValid(leftValue, rightValue, operation);
 
 	auto rightCastValue = make_shared<DataValue>(*rightValue);
-	CastOperands(leftValue, rightCastValue.get(), operation);
+	auto leftCastValue = make_shared<DataValue>(*leftValue);
+	CastOperands(leftCastValue.get(), rightCastValue.get(), operation);
+	auto resValue = make_shared<DataValue>();
 	auto resType = leftValue->type;
 
 	if (resType == DataType::Long)
 		switch (operation) {
 		case LexemeType::E:
-			leftValue->longVal = leftValue->longVal == rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal == rightCastValue->longVal; break;
 		case LexemeType::NE:
-			leftValue->longVal = leftValue->longVal != rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal != rightCastValue->longVal; break;
 		case LexemeType::G:
-			leftValue->longVal = leftValue->longVal > rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal > rightCastValue->longVal; break;
 		case LexemeType::L:
-			leftValue->longVal = leftValue->longVal < rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal < rightCastValue->longVal; break;
 		case LexemeType::LE:
-			leftValue->longVal = leftValue->longVal <= rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal <= rightCastValue->longVal; break;
 		case LexemeType::GE:
-			leftValue->longVal = leftValue->longVal >= rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal >= rightCastValue->longVal; break;
 		case LexemeType::Plus:
-			leftValue->longVal = leftValue->longVal + rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal + rightCastValue->longVal; break;
 		case LexemeType::Minus:
-			leftValue->longVal = leftValue->longVal - rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal - rightCastValue->longVal; break;
 		case LexemeType::Mul:
-			leftValue->longVal = leftValue->longVal * rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal * rightCastValue->longVal; break;
 		case LexemeType::Div:
-			leftValue->longVal = leftValue->longVal / rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal / rightCastValue->longVal; break;
 		case LexemeType::Modul:
-			leftValue->longVal = leftValue->longVal % rightCastValue->longVal; break;
+			resValue->longVal = leftValue->longVal % rightCastValue->longVal; break;
 		default:
 			throw std::exception("not known operation");
 		}
 	else
 		switch (operation) {
 		case LexemeType::E:
-			leftValue->intVal = leftValue->intVal == rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal == rightCastValue->intVal; break;
 		case LexemeType::NE:
-			leftValue->intVal = leftValue->intVal != rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal != rightCastValue->intVal; break;
 		case LexemeType::G:
-			leftValue->intVal = leftValue->intVal > rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal > rightCastValue->intVal; break;
 		case LexemeType::L:
-			leftValue->intVal = leftValue->intVal < rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal < rightCastValue->intVal; break;
 		case LexemeType::LE:
-			leftValue->intVal = leftValue->intVal <= rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal <= rightCastValue->intVal; break;
 		case LexemeType::GE:
-			leftValue->intVal = leftValue->intVal >= rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal >= rightCastValue->intVal; break;
 		case LexemeType::Plus:
-			leftValue->intVal = leftValue->intVal + rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal + rightCastValue->intVal; break;
 		case LexemeType::Minus:
-			leftValue->intVal = leftValue->intVal - rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal - rightCastValue->intVal; break;
 		case LexemeType::Mul:
-			leftValue->intVal = leftValue->intVal * rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal * rightCastValue->intVal; break;
 		case LexemeType::Div:
-			leftValue->intVal = leftValue->intVal / rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal / rightCastValue->intVal; break;
 		case LexemeType::Modul:
-			leftValue->intVal = leftValue->intVal % rightCastValue->intVal; break;
+			resValue->intVal = leftValue->intVal % rightCastValue->intVal; break;
 		default:
 			throw std::exception("not known operation");
 		}
+	resValue->type = resType;
+	return resValue;
 }
 
-void SemanticTree::PerformPrefixOperation(LexemeType operation, DataValue* value) const
+shared_ptr<DataValue> SemanticTree::PerformPrefixOperation(LexemeType operation, shared_ptr<DataValue> value) const
 {
-	if (!IsInterpretation) return;
+	if (!IsInterpretation) return nullptr;
 
 	CheckOperationValid(value, operation);
-
+	shared_ptr<DataValue> resValue;
+	if (operation == LexemeType::Inc || operation == LexemeType::Dec)
+		resValue = value;
+	else
+		resValue = make_shared<DataValue>();
 	if (value->type == DataType::Long)
 		switch (operation) {
 		case LexemeType::Plus:
-			value->longVal = +value->longVal; break;
+			resValue->longVal = +value->longVal; break;
 		case LexemeType::Minus:
-			value->longVal = -value->longVal; break;
+			resValue->longVal = -value->longVal; break;
 		case LexemeType::Inc:
-			++value->longVal; break;
+			++resValue->longVal; break;
 		case LexemeType::Dec:
-			--value->longVal; break;
+			--resValue->longVal; break;
 		default:
 			throw std::exception("not known operation");
 		}
@@ -165,17 +173,18 @@ void SemanticTree::PerformPrefixOperation(LexemeType operation, DataValue* value
 	{
 		switch (operation) {
 		case LexemeType::Plus:
-			value->intVal = +value->intVal; break;
+			resValue->intVal = +value->intVal; break;
 		case LexemeType::Minus:
-			value->intVal = -value->intVal; break;
+			resValue->intVal = -value->intVal; break;
 		case LexemeType::Inc:
-			++value->intVal; break;
+			++resValue->intVal; break;
 		case LexemeType::Dec:
-			--value->intVal; break;
+			--resValue->intVal; break;
 		default:
 			throw std::exception("not known operation");
 		}
 	}
+	return resValue;
 }
 
 shared_ptr<DataValue> SemanticTree::ConvertNumLexemeToValue(const Lexeme& lex) const
@@ -211,7 +220,7 @@ std::shared_ptr<DataValue> SemanticTree::CloneValue(const std::shared_ptr<DataVa
 	return IsInterpretation ? std::make_shared<DataValue>(*value) : nullptr;
 }
 
-void SemanticTree::CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const
+void SemanticTree::CheckOperationValid(shared_ptr<DataValue> leftValue, shared_ptr<DataValue> rightValue, LexemeType operation) const
 {
 	if (!IsInterpretation) return;
 
@@ -225,7 +234,7 @@ void SemanticTree::CheckOperationValid(const DataValue* leftValue, const DataVal
 		throw DivisionOnZeroException();
 }
 
-void SemanticTree::CheckOperationValid(const DataValue* value, LexemeType operation) const
+void SemanticTree::CheckOperationValid(shared_ptr<DataValue> value, LexemeType operation) const
 {
 	if (!IsInterpretation) return;
 
@@ -311,6 +320,7 @@ SourceText::Iterator SemanticTree::GetFunctionPos(const Node* funcNode) const
 Node* SemanticTree::CloneFunctionDefinition(Node* origNode) const
 {
 	if (!IsInterpretation) return nullptr;
+
 	auto siblink = std::move(origNode->Siblink);		// swap ownerships of siblinks
 	origNode->Siblink = origNode->Clone(origNode);
 
@@ -325,7 +335,7 @@ Node* SemanticTree::CloneFunctionDefinition(Node* origNode) const
 	origNode = origNode->Child.get();
 	cloneNode = cloneNode->Child.get();
 
-	while (origNode->Siblink != nullptr)
+	while (origNode->Siblink && origNode->Siblink->GetSemanticType() == SemanticType::Var)
 	{
 		cloneNode->Siblink = origNode->Siblink->Clone(cloneNode);
 		origNode = origNode->Siblink.get();
@@ -343,13 +353,17 @@ void SemanticTree::DeleteFuncDefinition(Node* funcNode) const
 	funcNode->Parent->Siblink = std::move(funcNode->Siblink);
 }
 
-Node* SemanticTree::GetFuncBodyNode(Node* funcNode)
+void SemanticTree::AssignParamsWithArgs(const std::vector<std::shared_ptr<DataValue>>& args)
 {
-	funcNode = funcNode->Child.get();
-
-	while (funcNode->Siblink != nullptr)
-		funcNode = funcNode->Siblink.get();
-	return funcNode;
+	_currNode = _currNode->Child.get();
+	size_t argNum = 0;
+	while (_currNode->Siblink != nullptr) {
+		if (argNum < args.size()) {
+			SetVariableValue(_currNode->Siblink.get(), make_shared<DataValue>(*args[argNum]));
+			++argNum;
+		}
+		_currNode = _currNode->Siblink.get();
+	}
 }
 
 void SemanticTree::AddScope()
@@ -485,7 +499,7 @@ DataType SemanticTree::GetDataTypeOfNum(Lexeme lex)
 	if (lex.type == LexemeType::HexNum)
 	{
 		auto suff = lex.str.substr(2);
-		if (suff.size() < MAX_INT_H.size() ||suff.size() == MAX_INT_H.size() && suff <= MAX_INT_H)
+		if (suff.size() < MAX_INT_H.size() || suff.size() == MAX_INT_H.size() && suff <= MAX_INT_H)
 			return DataType::Int;
 		if (suff.size() < MAX_LONG_H.size() || suff.size() == MAX_LONG_H.size() && suff <= MAX_LONG_H)
 			return DataType::Long;

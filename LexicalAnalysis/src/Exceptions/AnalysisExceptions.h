@@ -64,7 +64,10 @@ class ExpectedExpressionException : public SyntaxException
 public:
 	ExpectedExpressionException(const Lexeme& lexeme)
 	{
-		message = "Ожидалось выражение, получено " + lexeme.str;
+		if (lexeme.type == LexemeType::End)
+			message = "Неожиданное завершение файла";
+		else
+			message = "Ожидалось выражение, получено " + lexeme.str;
 	}
 };
 

@@ -3,7 +3,6 @@
 #include <memory>
 #include <vector>
 
-#include "Interpretator/DataValue.h"
 #include "Lexical/Lexeme.h"
 #include "Node/FuncData.h"
 #include "Node/Node.h"
@@ -23,8 +22,8 @@ public:
 	void SetVariableValue(const Node* node, const std::shared_ptr<DataValue>& value) const;
 	std::shared_ptr<DataValue> CloneValue(const std::shared_ptr<DataValue>& value) const;
 	void CastValue(DataValue* value, DataType type) const;
-	void PerformOperation(DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const;
-	void PerformPrefixOperation(LexemeType operation, DataValue* value) const;
+	std::shared_ptr<DataValue> PerformOperation(std::shared_ptr<DataValue> leftValue, std::shared_ptr<DataValue> rightValue, LexemeType operation) const;
+	std::shared_ptr<DataValue> PerformPrefixOperation(LexemeType operation, std::shared_ptr<DataValue> value) const;
 	std::shared_ptr<DataValue> ConvertNumLexemeToValue(const Lexeme& lex) const;
 	void CastOperands(DataValue* leftValue, DataValue* rightValue, LexemeType operation) const;
 	
@@ -36,7 +35,7 @@ public:
 	SourceText::Iterator GetFunctionPos(const Node* funcNode) const;
 	Node* CloneFunctionDefinition(Node* origNode) const;
 	void DeleteFuncDefinition(Node* funcNode) const;
-	static Node* GetFuncBodyNode(Node* funcNode);
+	 void AssignParamsWithArgs(const std::vector<std::shared_ptr<DataValue>>& args);
 
 	Node* AddEmpty();
 	void AddScope();
@@ -52,8 +51,8 @@ public:
 private:
 	bool CheckUniqueIdentifier(const std::string& id) const;
 	static void CheckCastable(DataType from, DataType to);
-	void CheckOperationValid(const DataValue* leftValue, const DataValue* rightValue, LexemeType operation) const;
-	void CheckOperationValid(const DataValue* value, LexemeType operation) const;
+	void CheckOperationValid(std::shared_ptr<DataValue> leftValue, std::shared_ptr<DataValue> rightValue, LexemeType operation) const;
+	void CheckOperationValid(std::shared_ptr<DataValue> value, LexemeType operation) const;
 
 	Node* FindNodeUpInScope(const std::string& id) const;
 	Node* FindNodeUp(const std::string& id) const;

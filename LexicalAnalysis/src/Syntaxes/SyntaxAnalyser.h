@@ -1,5 +1,4 @@
 #pragma once
-#include "Interpretator/DataValue.h"
 #include "Lexical/Scanner.h"
 #include "Semantics/SemanticTree.h"
 

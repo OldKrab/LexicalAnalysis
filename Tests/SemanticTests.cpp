@@ -32,6 +32,57 @@ namespace SemanticTests
 				void main(int a, long a) {}
 			)");
 		}
+
+		TEST_METHOD(RightRedefinedParam)
+		{
+			RunSyntaxAnalyser(R"(
+				void main(int a) { int a; }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedFunc)
+		{
+			RunSyntaxAnalyser(R"(
+				void foo(){}					
+				void main() { int foo; }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedVariable)
+		{
+			RunSyntaxAnalyser(R"(
+				void main() { int a; { int a; } }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedVariableForDecl)
+		{
+			RunSyntaxAnalyser(R"(
+				void main() { int a; for(int a = 1; a < 2; ++a) {} }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedVariableInFor)
+		{
+			RunSyntaxAnalyser(R"(
+				void main() { for(int a = 1; a < 2; ++a) { int a; } }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedVariableInFunc)
+		{
+			RunSyntaxAnalyser(R"(
+				int a;
+				void main() { int a; }
+			)");
+		}
+
+		TEST_METHOD(RightRedefinedVariableInDifferentScopes)
+		{
+			RunSyntaxAnalyser(R"(
+				void main() { {int a;}{int a;} }
+			)");
+		}
 	};
 
 	TEST_CLASS(UndefinedIdentifier)
@@ -170,11 +221,15 @@ namespace SemanticTests
 				void main(){int a = 9223372036854775808;}
 			)");
 		}
+
 		TEST_METHOD(NotBigDecConstant)
 		{
-			RunSyntaxAnalyser(R"(
-				void main(){int a = 9223372036854775807;}
+			auto sa = RunSyntaxAnalyser(R"(
+				long a;
+				void main(){a = 9223372036854775807;}
 			)");
+			auto a = GetValueOfVariable(sa, "a");
+			Assert::AreEqual(a->longVal, 9223372036854775807);
 		}
 
 		TEST_METHOD(BigOctConstant)
@@ -185,9 +240,12 @@ namespace SemanticTests
 		}
 		TEST_METHOD(NotBigOctConstant)
 		{
-			RunSyntaxAnalyser(R"(
-				void main(){int a = 0777777777777777777777;}
+			auto sa = RunSyntaxAnalyser(R"(
+				long a;
+				void main(){a = 0777777777777777777777;}
 			)");
+			auto a = GetValueOfVariable(sa, "a");
+			Assert::AreEqual(a->longVal, 0777777777777777777777);
 		}
 
 		TEST_METHOD(BigHexConstant)
@@ -196,11 +254,15 @@ namespace SemanticTests
 				void main(){int a = 0x8000000000000000;}
 			)");
 		}
+
 		TEST_METHOD(NotBigHexConstant)
 		{
-			RunSyntaxAnalyser(R"(
-				void main(){int a = 0x7FFFFFFFFFFFFFFF;}
+			auto sa = RunSyntaxAnalyser(R"(
+				long a;
+				void main(){a = 0x7FFFFFFFFFFFFFFF;}
 			)");
+			auto a = GetValueOfVariable(sa, "a");
+			Assert::AreEqual(a->longVal, 0x7FFFFFFFFFFFFFFF);
 		}
 	};
 
@@ -221,11 +283,20 @@ namespace SemanticTests
 				void main(){ foo(1,2,3); }
 			)");
 		}
+
 		TEST_METHOD(ArgsCountEqual)
 		{
 			RunSyntaxAnalyser(R"(
 				void foo(int a, int b){}
 				void main(){ foo(1,2); }
+			)");
+		}
+
+		TEST_METHOD(ArgsCountZero)
+		{
+			RunSyntaxAnalyser(R"(
+				void foo(){}
+				void main(){ foo(); }
 			)");
 		}
 	};
@@ -259,6 +330,7 @@ namespace SemanticTests
 				void main(){ int a; a(); }
 			)");
 		}
+
 		TEST_METHOD(UseFunctionAsVariable)
 		{
 			ExpectException<UsingFunctionAsVariableException>(R"(
