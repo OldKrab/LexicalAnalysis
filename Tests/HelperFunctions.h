@@ -11,14 +11,6 @@ inline SyntaxAnalyser RunSyntaxAnalyser(std::string src)
 	return sa;
 }
 
-inline std::shared_ptr<DataValue> GetValueOfVariable(SyntaxAnalyser& sa, std::string id)
-{
-	auto node = sa.GetSemTree()->FindVariableNodeUp(id);
-	return sa.GetSemTree()->GetVariableValue(node);
-}
-
-
-
 template<class Exception>
 void ExpectException(std::string src)
 {

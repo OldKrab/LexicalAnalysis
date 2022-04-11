@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Exceptions\AnalysisExceptions.h" />
-    <ClInclude Include="src\Semantics\Node\DataValue.h" />
     <ClInclude Include="src\Lexical\Lexeme.h" />
     <ClInclude Include="src\Lexical\Scanner.h" />
     <ClInclude Include="src\Lexical\SourceText.h" />

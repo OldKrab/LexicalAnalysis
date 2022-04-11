@@ -8,6 +8,6 @@ int main()
 	std::ofstream fout("output.txt");
 	std::ifstream fin("tested.cpp");
 	SyntaxAnalyser analyser(fin);
-	analyser.PrintAnalysis();
+	analyser.Program();
 	return 0;
 }

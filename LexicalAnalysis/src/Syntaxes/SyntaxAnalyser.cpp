@@ -45,8 +45,6 @@ void SyntaxAnalyser::FuncDecl()
 	if (lex.type != LexemeType::Id && lex.type != LexemeType::Main)
 		throw InvalidIdentifierException(lex.str);
 
-	const auto isMain = lex.type == LexemeType::Main;
-
 	lex = scanner->NextScan();							//Scan (
 
 	Params(funcNode);
@@ -56,12 +54,8 @@ void SyntaxAnalyser::FuncDecl()
 
 
 	semTree->SetFunctionPos(funcNode, scanner->GetCurPos());
-	if (!isMain)
-		semTree->IsInterpretation = false;
 
 	CompStat();
-
-	semTree->IsInterpretation = true;
 
 	semTree->SetCurrentNode(funcNode);
 }
@@ -84,8 +78,8 @@ void SyntaxAnalyser::DataDecl()
 		lex = scanner->NextScan();												//Scan '=', ',', ';'
 
 		if (lex.type == LexemeType::Assign) {
-			auto rightValue = AssignExpr();
-			semTree->SetVariableValue(varNode, semTree->CloneValue(rightValue));
+			auto rightType = AssignExpr();
+			semTree->AssignVariable(varNode, rightType);
 
 			lex = scanner->NextScan();											//Scan  ',', ';'
 		}
@@ -167,8 +161,6 @@ void SyntaxAnalyser::CompStat()
 
 void SyntaxAnalyser::For()
 {
-	auto savedIsInterpret = semTree->IsInterpretation;
-
 	scanner->NextScan();									// Scan for
 
 	auto lex = scanner->NextScan();								// Scan (
@@ -179,49 +171,25 @@ void SyntaxAnalyser::For()
 
 	DataDecl();
 
-	auto condPos = scanner->GetCurPos();
-	auto condValue = AssignExpr();
-	semTree->CastValue(condValue.get(), DataType::Int);
+	auto condType = AssignExpr();
 
+	semTree->CheckCastable(condType, DataType::Int);
 
 	lex = scanner->NextScan();								// Scan ;
 	CheckExpectedLexeme(lex, LexemeType::Semi);
 
-	const auto exprPos = scanner->GetCurPos();
-	semTree->IsInterpretation = false;
 	AssignExpr();
-	semTree->IsInterpretation = savedIsInterpret && condValue->intVal != 0;
 
 	lex = scanner->NextScan();								// Scan )
 	CheckExpectedLexeme(lex, LexemeType::ClosePar);
 
-	SourceText::Iterator statStartPos = scanner->GetCurPos(), statEndPos;
-
-	do
-	{
-		scanner->SetCurPos(statStartPos);
-		Stat();
-		statEndPos = scanner->GetCurPos();
-		if (semTree->IsInterpretation) {
-			scanner->SetCurPos(exprPos);
-			AssignExpr();
-
-			scanner->SetCurPos(condPos);
-			condValue = AssignExpr();
-			semTree->CastValue(condValue.get(), DataType::Int);
-			semTree->IsInterpretation = savedIsInterpret && condValue->intVal != 0;
-		}
-
-	} while (semTree->IsInterpretation);
-
-	scanner->SetCurPos(statEndPos);
-	semTree->IsInterpretation = savedIsInterpret;
+	Stat();
 
 	semTree->SetCurrentNode(savedNode);
 	semTree->DeleteSubTree(savedNode);
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::AssignExpr()
+DataType SyntaxAnalyser::AssignExpr()
 {
 	auto lex = scanner->LookForward(2);
 	if (lex.type == LexemeType::Assign)
@@ -233,82 +201,81 @@ std::shared_ptr<DataValue> SyntaxAnalyser::AssignExpr()
 
 		lex = scanner->NextScan();										// Scan =
 
-		semTree->SetVariableValue(node, semTree->CloneValue(EqualExpr()));
+		semTree->AssignVariable(node, EqualExpr());
 
-		auto value = semTree->GetVariableValue(node);
-		return value;
+		return node->GetDataType();
 	}
 	return EqualExpr();
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::EqualExpr()
+DataType SyntaxAnalyser::EqualExpr()
 {
-	auto leftValue = CmpExpr();
+	auto leftType = CmpExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::E || lex.type == LexemeType::NE)
 	{
 		lex = scanner->NextScan();											// Scan ==, !=
-		auto rightValue = CmpExpr();
+		auto rightType = CmpExpr();
 
-		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
+		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
 		lex = scanner->LookForward(1);
 	}
-	return leftValue;
+	return leftType;
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::CmpExpr()
+DataType SyntaxAnalyser::CmpExpr()
 {
-	auto leftValue = AddExpr();
+	auto leftType = AddExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::G || lex.type == LexemeType::GE
 		|| lex.type == LexemeType::L || lex.type == LexemeType::LE)
 	{
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
-		const auto rightValue = AddExpr();
+		const auto rightType = AddExpr();
 
-		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
+		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftValue;
+	return leftType;
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::AddExpr()
+DataType SyntaxAnalyser::AddExpr()
 {
-	auto leftValue = MultExpr();
+	auto leftType = MultExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Plus
 		|| lex.type == LexemeType::Minus)
 	{
 		scanner->NextScan();													// Scan +, -
-		const auto rightValue = MultExpr();
+		const auto rightType = MultExpr();
 
-		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
+		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftValue;
+	return leftType;
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::MultExpr()
+DataType SyntaxAnalyser::MultExpr()
 {
-	auto leftValue = PrefixExpr();
+	auto leftType = PrefixExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Mul
 		|| lex.type == LexemeType::Div
 		|| lex.type == LexemeType::Modul)
 	{
 		scanner->NextScan();												// Scan *, /, %
-		const auto rightValue = PrefixExpr();
+		const auto rightType = PrefixExpr();
 
-		leftValue = semTree->PerformOperation(leftValue, rightValue, lex.type);
+		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftValue;
+	return leftType;
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::PrefixExpr()
+DataType SyntaxAnalyser::PrefixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	std::stack<Lexeme> ops;
@@ -331,21 +298,20 @@ std::shared_ptr<DataValue> SyntaxAnalyser::PrefixExpr()
 	return value;
 }
 
-std::shared_ptr<DataValue> SyntaxAnalyser::PostfixExpr()
+DataType SyntaxAnalyser::PostfixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	auto lex2 = scanner->LookForward(2);
 	if ((lex.type == LexemeType::Id || lex.type == LexemeType::Main)
 		&& lex2.type == LexemeType::OpenPar)							// func call
 	{
-		FuncCall();
-		return semTree->IsInterpretation ? std::make_shared<DataValue>(DataType::Void) : nullptr;
+		return FuncCall();
 	}
 
 	return PrimExpr();
 }
 
-void SyntaxAnalyser::FuncCall()
+DataType SyntaxAnalyser::FuncCall()
 {
 	auto lex = scanner->NextScan();							// Scan Id, main
 
@@ -353,15 +319,15 @@ void SyntaxAnalyser::FuncCall()
 
 	scanner->NextScan();											// Scan (
 
-	std::vector<std::shared_ptr<DataValue>> args;
+	std::vector<DataType> args;
 	lex = scanner->LookForward(1);
 	// work with arguments
 	if (lex.type != LexemeType::ClosePar)
 	{
 		do
 		{
-			auto value = AssignExpr();
-			args.push_back(value);
+			auto type = AssignExpr();
+			args.push_back(type);
 
 			lex = scanner->NextScan();								// Scan ,
 		} while (lex.type == LexemeType::Comma);
@@ -372,27 +338,11 @@ void SyntaxAnalyser::FuncCall()
 		scanner->NextScan();
 
 	semTree->CheckValidFuncArgs(funcNode, args);
-
-	if (semTree->IsInterpretation)
-	{
-		auto savedPos = scanner->GetCurPos();
-		auto savedNode = semTree->GetCurrentNode();
-
-		scanner->SetCurPos(semTree->GetFunctionPos(funcNode));
-		auto cloneFuncNode = semTree->CloneFunctionDefinition(funcNode);
-
-		semTree->SetCurrentNode(cloneFuncNode);
-		semTree->AssignParamsWithArgs(args);
-		CompStat();
-		semTree->DeleteFuncDefinition(cloneFuncNode);
-
-		semTree->SetCurrentNode(savedNode);
-		scanner->SetCurPos(savedPos);
-	}
+	return DataType::Void;
 }
 
 
-std::shared_ptr<DataValue> SyntaxAnalyser::PrimExpr()
+DataType SyntaxAnalyser::PrimExpr()
 {
 	auto lex = scanner->NextScan();								// Scan DecNum, HexNum, OctNum, Id, Main (
 
@@ -406,14 +356,15 @@ std::shared_ptr<DataValue> SyntaxAnalyser::PrimExpr()
 
 	if (lex.type == LexemeType::Id || lex.type == LexemeType::Main)		// identifier
 	{
-		auto value = semTree->GetVariableValue(semTree->FindVariableNodeUp(lex.str));
-		return value;
+		auto node = semTree->FindVariableNodeUp(lex.str);
+		semTree->CheckInitialized(node);
+		return node->GetDataType();
 	}
 
 	if (lex.type == LexemeType::DecimNum || lex.type == LexemeType::HexNum
 		|| lex.type == LexemeType::OctNum)
 	{
-		return semTree->ConvertNumLexemeToValue(lex);
+		return semTree->GetDataTypeOfNum(lex);
 	}
 
 	throw ExpectedExpressionException(lex);

@@ -13,7 +13,7 @@ public:
 
 	void Program();
 
-	SemanticTree* GetSemTree() { return semTree.get(); }
+	SemanticTree* GetSemTree() const { return semTree.get(); }
 private:
 	void FuncDecl();
 	void DataDecl();
@@ -21,17 +21,17 @@ private:
 	void Stat();
 	void CompStat();
 	void For();
-	void FuncCall();
 
 
-	std::shared_ptr<DataValue> AssignExpr();
-	std::shared_ptr<DataValue> EqualExpr();
-	std::shared_ptr<DataValue> CmpExpr();
-	std::shared_ptr<DataValue> AddExpr();
-	std::shared_ptr<DataValue> MultExpr();
-	std::shared_ptr<DataValue> PrefixExpr();
-	std::shared_ptr<DataValue> PostfixExpr();
-	std::shared_ptr<DataValue> PrimExpr();
+	DataType FuncCall();
+	DataType AssignExpr();
+	DataType EqualExpr();
+	DataType CmpExpr();
+	DataType AddExpr();
+	DataType MultExpr();
+	DataType PrefixExpr();
+	DataType PostfixExpr();
+	DataType PrimExpr();
 
 
 	static void CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expected);

@@ -2,8 +2,6 @@
 #include "Node.h"
 #include <iostream>
 #include <utility>
-
-#include "DataValue.h"
 #include "Types/DataType.h"
 
 class VarData : public NodeData
@@ -15,7 +13,6 @@ public:
 		Type(type),
 		IsInitialized(false)
 	{
-		SetDefaultValue(type);
 	}
 
 	DataType GetDataType() const override { return Type; }
@@ -26,9 +23,6 @@ public:
 
 	std::unique_ptr<NodeData> Clone() const override;
 
-	void SetDefaultValue(DataType type);
-
 	DataType Type;
-	std::shared_ptr<DataValue> Value;
 	bool IsInitialized;
 };

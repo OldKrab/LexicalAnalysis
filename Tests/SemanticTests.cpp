@@ -152,7 +152,7 @@ namespace SemanticTests
 	{
 		TEST_METHOD(InvalidOperandPlus)
 		{
-			ExpectException<InvalidOperandsException>(R"(
+			ExpectException<UncastableVariableException>(R"(
 				void foo(){}	
 				void main(){ int a = 1 + foo(); }
 			)");
@@ -160,7 +160,7 @@ namespace SemanticTests
 
 		TEST_METHOD(InvalidOperandMul)
 		{
-			ExpectException<InvalidOperandsException>(R"(
+			ExpectException<UncastableVariableException>(R"(
 				void foo(){}	
 				void main(){ int a = 1 * foo(); }
 			)");
@@ -168,7 +168,7 @@ namespace SemanticTests
 
 		TEST_METHOD(InvalidOperandInc)
 		{
-			ExpectException<InvalidOperandsException>(R"(
+			ExpectException<UncastableVariableException>(R"(
 				void foo(){}	
 				void main(){ int a = ++foo(); }
 			)");
@@ -176,7 +176,7 @@ namespace SemanticTests
 
 		TEST_METHOD(InvalidOperandEqual)
 		{
-			ExpectException<InvalidOperandsException>(R"(
+			ExpectException<UncastableVariableException>(R"(
 				void foo(){}	
 				void main(){ int a = 1 == foo(); }
 			)");
@@ -184,34 +184,14 @@ namespace SemanticTests
 
 		TEST_METHOD(InvalidOperandCmp)
 		{
-			ExpectException<InvalidOperandsException>(R"(
+			ExpectException<UncastableVariableException>(R"(
 				void foo(){}	
 				void main(){ int a = 1 > foo(); }
 			)");
 		}
 	};
 
-	TEST_CLASS(DivisionOnZero)
-	{
-		TEST_METHOD(DivOnZero)
-		{
-			ExpectException<DivisionOnZeroException>(R"(
-				void main(){ int a = 1 / 0; }
-			)");
-			ExpectException<DivisionOnZeroException>(R"(
-				void main(){ int a = 1 / 0L; }
-			)");
-		}
-		TEST_METHOD(ModulOnZero)
-		{
-			ExpectException<DivisionOnZeroException>(R"(
-				void main(){ int a = 1 % 0; }
-			)");
-			ExpectException<DivisionOnZeroException>(R"(
-				void main(){ int a = 1 % 0L; }
-			)");
-		}
-	};
+	
 
 	TEST_CLASS(NumberConstant)
 	{
@@ -228,8 +208,6 @@ namespace SemanticTests
 				long a;
 				void main(){a = 9223372036854775807;}
 			)");
-			auto a = GetValueOfVariable(sa, "a");
-			Assert::AreEqual(a->longVal, 9223372036854775807);
 		}
 
 		TEST_METHOD(BigOctConstant)
@@ -244,8 +222,6 @@ namespace SemanticTests
 				long a;
 				void main(){a = 0777777777777777777777;}
 			)");
-			auto a = GetValueOfVariable(sa, "a");
-			Assert::AreEqual(a->longVal, 0777777777777777777777);
 		}
 
 		TEST_METHOD(BigHexConstant)
@@ -261,8 +237,6 @@ namespace SemanticTests
 				long a;
 				void main(){a = 0x7FFFFFFFFFFFFFFF;}
 			)");
-			auto a = GetValueOfVariable(sa, "a");
-			Assert::AreEqual(a->longVal, 0x7FFFFFFFFFFFFFFF);
 		}
 	};
 
