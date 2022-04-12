@@ -128,15 +128,6 @@ void SemanticTree::AddParam(const Node* funcNode, const std::string& id, DataTyp
 }
 
 
-void SemanticTree::SetFunctionPos(const Node* funcNode, const SourceText::Iterator& pos)
-{
-	GetFunctionData(funcNode)->Pos = pos;
-}
-
-SourceText::Iterator SemanticTree::GetFunctionPos(const Node* funcNode)
-{
-	return GetFunctionData(funcNode)->Pos;
-}
 
 Node* SemanticTree::CloneFunctionDefinition(Node* origNode) const
 {

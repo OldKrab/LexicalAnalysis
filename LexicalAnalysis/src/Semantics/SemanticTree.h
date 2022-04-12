@@ -28,8 +28,6 @@ public:
 
 	Node* AddFunction(const std::string& id);
 	void AddParam(const Node* funcNode, const std::string& id, DataType type);
-	static void SetFunctionPos(const Node* funcNode, const SourceText::Iterator& pos);
-	static SourceText::Iterator GetFunctionPos(const Node* funcNode);
 	Node* CloneFunctionDefinition(Node* origNode) const;
 	void DeleteFuncDefinition(Node* funcNode) const;
 

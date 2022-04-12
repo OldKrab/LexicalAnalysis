@@ -2,8 +2,6 @@
 #include "Node.h"
 #include <iostream>
 
-#include "Lexical/SourceText.h"
-
 class FuncData :public NodeData
 {
 public:
@@ -18,5 +16,4 @@ public:
 	std::unique_ptr<NodeData> Clone() const override;
 
 	int ParamsCount = 0;
-	SourceText::Iterator Pos;
 };

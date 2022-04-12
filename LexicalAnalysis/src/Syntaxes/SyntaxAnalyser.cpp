@@ -54,8 +54,6 @@ void SyntaxAnalyser::FuncDecl()
 
 	interGen->StartFunctionDeclaration(funcNode->Data->Identifier);
 
-	semTree->SetFunctionPos(funcNode, scanner->GetCurPos());
-
 	CompStat();
 
 	interGen->EndFunctionDeclaration();
