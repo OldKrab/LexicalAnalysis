@@ -3,7 +3,7 @@
 
 #include "Syntaxes/SyntaxAnalyser.h"
 
-inline SyntaxAnalyser RunSyntaxAnalyser(std::string src)
+inline SyntaxAnalyser RunSyntaxAnalyser(const std::string& src)
 {
 	std::stringstream ss(src);
 	SyntaxAnalyser sa(ss);
@@ -12,8 +12,8 @@ inline SyntaxAnalyser RunSyntaxAnalyser(std::string src)
 }
 
 template<class Exception>
-void ExpectException(std::string src)
+void ExpectException(const std::string& src)
 {
-	Assert::ExpectException<Exception>([src] {
+	Microsoft::VisualStudio::CppUnitTestFramework::Assert::ExpectException<Exception>([src] {
 		RunSyntaxAnalyser(src); });
 }

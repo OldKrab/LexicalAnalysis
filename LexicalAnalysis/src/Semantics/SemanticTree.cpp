@@ -10,8 +10,9 @@
 
 using std::make_unique;
 
-SemanticTree::SemanticTree()
+SemanticTree::SemanticTree(IntermediateGenerator* intermediateGenerator)
 	:_rootNode(make_unique<Node>(nullptr)),
+	_interGen(intermediateGenerator),
 	_currNode(_rootNode.get())
 {}
 
@@ -62,7 +63,7 @@ DataType SemanticTree::CheckOperation(DataType leftType, DataType rightType, Lex
 
 
 
-DataType SemanticTree::CheckPrefixOperation(LexemeType operation, DataType type) 
+DataType SemanticTree::CheckPrefixOperation(LexemeType operation, DataType type)
 {
 	auto resType = DataType::Int;
 	if (type == DataType::Long)
@@ -321,4 +322,5 @@ void SemanticTree::CheckCastable(DataType from, DataType to)
 	if (from == DataType::Void || to == DataType::Void
 		|| from == DataType::Unknown || to == DataType::Unknown)
 		throw UncastableVariableException(from, to);
+	
 }

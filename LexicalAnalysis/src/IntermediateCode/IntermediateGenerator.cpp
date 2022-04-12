@@ -1,27 +1,67 @@
 ﻿#include "IntermediateGenerator.h"
 
-Triad* IntermediateGenerator::AssignVariable(std::string id, Operand operand)
+#include <iostream>
+#include <utility>
+
+Operand IntermediateGenerator::AssignVariable(std::string id, Operand operand)
 {
-	return AddTriad(TriadType::Assign, Operand(id), operand);
+	return Operand(AddTriad("=", Operand(std::move(id)), std::move(operand)));
 }
 
-Triad* IntermediateGenerator::Operation(TriadType operation, const Operand& leftOperand, const Operand& rightOperand)
+void IntermediateGenerator::StartFunctionDeclaration(std::string id)
 {
-	return AddTriad(operation, leftOperand, rightOperand);
+	AddTriad("proc", Operand(std::move(id)));
+	AddTriad("prolog");
 }
 
-Triad* IntermediateGenerator::Operation(TriadType operation, const Operand& operand)
+void IntermediateGenerator::EndFunctionDeclaration()
 {
-	return AddTriad(operation, operand);
+	AddTriad("epilog");
+	AddTriad("ret");
+	AddTriad("endp");
 }
 
-Triad* IntermediateGenerator::CallFunction(std::string id, std::vector<Operand> args)
+Operand IntermediateGenerator::Operation(std::string operation, const Operand& leftOperand, const Operand& rightOperand)
 {
-	for(auto&& arg: args)
+	return Operand(AddTriad(std::move(operation), leftOperand, rightOperand));
+}
+
+Operand IntermediateGenerator::Operation(std::string operation, const Operand& operand)
+{
+	return Operand(AddTriad(std::move(operation), operand));
+}
+
+Operand IntermediateGenerator::CastOperandIfNeed(DataType from, DataType to, Operand operand)
+{
+	if (from != to)
 	{
-		AddTriad();
+		std::string operation;
+		if (from == DataType::Int && to == DataType::Long)
+			operation = "I->L";
+		else
+			operation = "L->I";
+		operand = Operand(AddTriad(operation, operand));
 	}
-
-	
+	return operand;
 }
+
+Operand IntermediateGenerator::CallFunction(std::string id, const std::vector<Operand>& args)
+{
+	for (auto&& arg : args)
+		AddTriad("push", arg);
+	return Operand(AddTriad("call", Operand(std::move(id))));
+}
+
+void IntermediateGenerator::PrintTriads() const
+{
+	for (auto&& triad : triads)
+		std::cout << *triad << std::endl;
+}
+
+Triad* IntermediateGenerator::AddNop()
+{
+	return AddTriad("nop");
+}
+
+
 

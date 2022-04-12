@@ -9,8 +9,10 @@ class SyntaxAnalyser
 public:
 	SyntaxAnalyser(const std::istream& srcStream)
 		: scanner(std::make_unique<Scanner>(srcStream)),
-		semTree(std::make_unique<SemanticTree>())
-	{}
+		interGen(std::make_unique<IntermediateGenerator>())
+	{
+		semTree = std::make_unique<SemanticTree>(interGen.get());
+	}
 	void PrintAnalysis();
 
 	void Program();

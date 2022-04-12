@@ -45,7 +45,7 @@ void Scanner::Scan(std::ostream& out)
 		SourceText::Iterator savePos;
 		NextScan();
 		out.width(9);
-		out.flags(out.left);
+		out.flags(std::ostream::left);
 		out << _lexeme.str << LexemeTypeToString(_lexeme.type) << " " << _lexeme.pos.row << ' ' << _lexeme.pos.column << std::endl;
 	}
 

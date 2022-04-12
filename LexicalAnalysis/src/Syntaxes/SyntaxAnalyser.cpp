@@ -1,5 +1,4 @@
 ﻿#include <stack>
-#include <algorithm>
 #include "SyntaxAnalyser.h"
 #include "Exceptions/AnalysisExceptions.h"
 
@@ -9,7 +8,7 @@ void SyntaxAnalyser::PrintAnalysis()
 	try
 	{
 		Program();
-		semTree->Print();
+		interGen->PrintTriads();
 	}
 	catch (AnalysisException& ex)
 	{
@@ -53,10 +52,13 @@ void SyntaxAnalyser::FuncDecl()
 	lex = scanner->NextScan();							//Scan )
 	CheckExpectedLexeme(lex, LexemeType::ClosePar);
 
+	interGen->StartFunctionDeclaration(funcNode->Data->Identifier);
 
 	semTree->SetFunctionPos(funcNode, scanner->GetCurPos());
 
 	CompStat();
+
+	interGen->EndFunctionDeclaration();
 
 	semTree->SetCurrentNode(funcNode);
 }
@@ -80,7 +82,10 @@ void SyntaxAnalyser::DataDecl()
 
 		if (lex.type == LexemeType::Assign) {
 			auto [operand, rightType] = AssignExpr();
+
 			semTree->AssignVariable(varNode, rightType);
+
+			operand = interGen->CastOperandIfNeed(rightType, varNode->GetDataType(), operand);
 			interGen->AssignVariable(varNode->Data->Identifier, operand);
 
 			lex = scanner->NextScan();											//Scan  ',', ';'
@@ -176,6 +181,7 @@ void SyntaxAnalyser::For()
 	auto [operand, condType] = AssignExpr();
 
 	semTree->CheckCastable(condType, DataType::Int);
+	operand = interGen->CastOperandIfNeed(condType, DataType::Int, operand);
 
 	lex = scanner->NextScan();								// Scan ;
 	CheckExpectedLexeme(lex, LexemeType::Semi);
@@ -206,8 +212,8 @@ std::tuple<Operand, DataType> SyntaxAnalyser::AssignExpr()
 		auto [operand, type] = EqualExpr();
 
 		semTree->AssignVariable(node, type);
-		auto triad = interGen->AssignVariable(node->Data->Identifier, operand);
-		operand = Operand(triad);
+		operand = interGen->CastOperandIfNeed(type, node->GetDataType(), operand);
+		operand = interGen->AssignVariable(node->Data->Identifier, operand);
 
 		return { operand, node->GetDataType() };
 	}
@@ -223,9 +229,12 @@ std::tuple<Operand, DataType> SyntaxAnalyser::EqualExpr()
 		lex = scanner->NextScan();											// Scan ==, !=
 		auto [rightOperand, rightType] = CmpExpr();
 
-		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
-		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
-		leftOperand = Operand(triad);
+		auto resType = semTree->CheckOperation(leftType, rightType, lex.type);
+
+		rightOperand = interGen->CastOperandIfNeed(rightType, resType, rightOperand);
+		leftOperand = interGen->Operation(lex.str, leftOperand, rightOperand);
+		leftOperand = interGen->Operation(lex.str, leftOperand, rightOperand);
+		leftType = resType;
 
 		lex = scanner->LookForward(1);
 	}
@@ -242,9 +251,12 @@ std::tuple<Operand, DataType> SyntaxAnalyser::CmpExpr()
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
 		auto [rightOperand, rightType] = AddExpr();
 
-		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
-		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
-		leftOperand = Operand(triad);
+		auto resType = semTree->CheckOperation(leftType, rightType, lex.type);
+
+		leftOperand = interGen->CastOperandIfNeed(leftType, resType, leftOperand);
+		rightOperand = interGen->CastOperandIfNeed(rightType, resType, rightOperand);
+		leftOperand = interGen->Operation(lex.str, leftOperand, rightOperand);
+		leftType = resType;
 
 		lex = scanner->LookForward(1);
 	}
@@ -259,11 +271,14 @@ std::tuple<Operand, DataType> SyntaxAnalyser::AddExpr()
 		|| lex.type == LexemeType::Minus)
 	{
 		scanner->NextScan();													// Scan +, -
-		 auto [rightOperand,rightType] = MultExpr();
+		auto [rightOperand, rightType] = MultExpr();
 
-		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
-		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
-		leftOperand = Operand(triad);
+		auto resType = semTree->CheckOperation(leftType, rightType, lex.type);
+
+		leftOperand = interGen->CastOperandIfNeed(leftType, resType, leftOperand);
+		rightOperand = interGen->CastOperandIfNeed(rightType, resType, rightOperand);
+		leftOperand = interGen->Operation(lex.str, leftOperand, rightOperand);
+		leftType = resType;
 
 		lex = scanner->LookForward(1);
 	}
@@ -281,9 +296,12 @@ std::tuple<Operand, DataType> SyntaxAnalyser::MultExpr()
 		scanner->NextScan();												// Scan *, /, %
 		auto [rightOperand, rightType] = PrefixExpr();
 
-		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
-		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
-		leftOperand = Operand(triad);
+		auto resType = semTree->CheckOperation(leftType, rightType, lex.type);
+
+		leftOperand = interGen->CastOperandIfNeed(leftType, resType, leftOperand);
+		rightOperand = interGen->CastOperandIfNeed(rightType, resType, rightOperand);
+		leftOperand = interGen->Operation(lex.str, leftOperand, rightOperand);
+		leftType = resType;
 
 		lex = scanner->LookForward(1);
 	}
@@ -302,16 +320,20 @@ std::tuple<Operand, DataType> SyntaxAnalyser::PrefixExpr()
 		lex = scanner->LookForward(1);
 	}
 	auto [operand, type] = PostfixExpr();
-	Triad* triad = nullptr;
 	while (!ops.empty())
 	{
 		lex = ops.top();
-		type = semTree->CheckPrefixOperation(lex.type, type);
-		triad = interGen->Operation(lex.type, operand);
+
+		auto resType = semTree->CheckPrefixOperation(lex.type, type);
+
+		operand = interGen->CastOperandIfNeed(type, resType, operand);
+		operand = interGen->Operation(lex.str, operand);
+		type = resType;
+
 		ops.pop();
 	}
 
-	return { triad ? Operand(triad) : operand, type };
+	return { operand, type };
 }
 
 std::tuple<Operand, DataType> SyntaxAnalyser::PostfixExpr()
@@ -358,9 +380,12 @@ std::tuple<Operand, DataType> SyntaxAnalyser::FuncCall()
 
 	semTree->CheckValidFuncArgs(funcNode, argsTypes);
 
-	auto triad = interGen->CallFunction(funcNode->Data->Identifier, args);
+	auto paramTypes = semTree->GetFunctionParams(funcNode);
+	for (size_t i = 0; i < args.size(); i++)
+		args[i] = interGen->CastOperandIfNeed(argsTypes[i], paramTypes[i], args[i]);
+	auto operand = interGen->CallFunction(funcNode->Data->Identifier, args);
 
-	return { Operand(triad), DataType::Void };
+	return { operand, DataType::Void };
 }
 
 

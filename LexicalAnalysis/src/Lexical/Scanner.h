@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <unordered_map>
 #include <string>
+#include <utility>
 #include "Lexeme.h"
 #include "SourceText.h"
 
@@ -14,7 +15,7 @@ public:
 	Lexeme NextScan();
 	Lexeme LookForward(int k);
 	SourceText::Iterator GetCurPos() { return curPos; }
-	void SetCurPos(SourceText::Iterator pos) { curPos = pos; }
+	void SetCurPos(SourceText::Iterator pos) { curPos = std::move(pos); }
 private:
 	void SkipIgnoreChars();
 	void SkipComment();
@@ -35,5 +36,5 @@ private:
 	Lexeme _lexeme;
 
 	static std::unordered_map<std::string, LexemeType> keywords;
-	static const int MAX_LEXEME_SIZE = 100;
+	static constexpr int MAX_LEXEME_SIZE = 100;
 };

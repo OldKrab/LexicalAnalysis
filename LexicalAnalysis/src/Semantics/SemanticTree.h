@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "IntermediateCode/IntermediateGenerator.h"
 #include "Lexical/Lexeme.h"
 #include "Node/FuncData.h"
 #include "Node/Node.h"
@@ -12,7 +13,7 @@
 class SemanticTree
 {
 public:
-	SemanticTree();
+	SemanticTree(IntermediateGenerator* intermediateGenerator);
 
 	Node* GetCurrentNode() const;
 	void SetCurrentNode(Node* node);
@@ -43,6 +44,7 @@ public:
 	void Print(std::ostream& out = std::cout) const;
 	static void CheckCastable(DataType from, DataType to);
 	static DataType GetDataTypeOfNum(Lexeme lex);
+	static std::vector<DataType> GetFunctionParams(const Node* funcNode);
 
 private:
 	bool CheckUniqueIdentifier(const std::string& id) const;
@@ -51,7 +53,6 @@ private:
 
 	Node* FindNodeUpInScope(const std::string& id) const;
 	Node* FindNodeUp(const std::string& id) const;
-	static std::vector<DataType> GetFunctionParams(const Node* funcNode);
 
 	static bool GetVariableInitialized(const Node* varNode);
 	static void SetVariableInitialized(const Node* varNode);
@@ -64,6 +65,7 @@ private:
 
 
 	std::unique_ptr<Node> _rootNode;
+	IntermediateGenerator* _interGen;
 	Node* _currNode;
 };
 

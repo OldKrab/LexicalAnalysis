@@ -1,6 +1,4 @@
 #pragma once
-#include "Types/DataType.h"
-#include "Types/LexemeType.h"
 #include "Types/TriadType.h"
 
 
@@ -10,7 +8,7 @@ struct Operand
 {
 	Operand();
 	explicit Operand(Triad* triad);
-	Operand(std::string view);
+	explicit Operand(std::string view);
 
 	bool IsLink;
 
@@ -22,13 +20,18 @@ struct Operand
 struct Triad
 {
 
-	Triad(int id, TriadType operation, Operand firstOperand, Operand secondOperand);
-	Triad(int id, TriadType operation, Operand operand);
+	Triad(int id, std::string operation, Operand firstOperand, Operand secondOperand);
+	Triad(int id, std::string operation, Operand operand);
+	Triad(int id, std::string operation);
+
 
 	int Id;
 
-	TriadType Operation;
+	std::string Operation;
 	Operand FirstOperand, SecondOperand;
 	int OperandsCount;
 };
+
+std::ostream& operator<<(std::ostream& out, const Operand& op);
+std::ostream& operator<<(std::ostream& out, const Triad& triad);
 

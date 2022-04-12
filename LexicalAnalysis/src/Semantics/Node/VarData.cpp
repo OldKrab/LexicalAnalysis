@@ -1,7 +1,5 @@
 #include "VarData.h"
 
-#include <cassert>
-
 
 void VarData::Print(std::ostream& out) const
 {
