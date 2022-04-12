@@ -54,6 +54,15 @@
     <ClInclude Include="src\Types\SemanticType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\IntermediateCode\Triad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IntermediateCode\IntermediateGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Types\TriadType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Lexical\Scanner.cpp">
@@ -75,6 +84,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IntermediateCode\IntermediateGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IntermediateCode\Triad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

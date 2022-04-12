@@ -20,8 +20,8 @@ public:
 	Node* AddVariable(DataType type, const std::string& id);
 	static void AssignVariable(const Node* node, DataType type);
 	static void CheckInitialized(const Node* node);
-	static DataType PerformOperation(DataType leftType, DataType rightType, LexemeType operation);
-	static DataType PerformPrefixOperation(LexemeType operation, DataType type);
+	static DataType CheckOperation(DataType leftType, DataType rightType, LexemeType operation);
+	static DataType CheckPrefixOperation(LexemeType operation, DataType type);
 
 	static void CheckValidFuncArgs(const Node* funcNode, const std::vector<DataType>& args);
 

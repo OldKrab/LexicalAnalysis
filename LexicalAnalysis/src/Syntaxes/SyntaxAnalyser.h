@@ -1,4 +1,6 @@
 #pragma once
+#include "IntermediateCode/IntermediateGenerator.h"
+#include "IntermediateCode/Triad.h"
 #include "Lexical/Scanner.h"
 #include "Semantics/SemanticTree.h"
 
@@ -23,15 +25,15 @@ private:
 	void For();
 
 
-	DataType FuncCall();
-	DataType AssignExpr();
-	DataType EqualExpr();
-	DataType CmpExpr();
-	DataType AddExpr();
-	DataType MultExpr();
-	DataType PrefixExpr();
-	DataType PostfixExpr();
-	DataType PrimExpr();
+	std::tuple<Operand, DataType> FuncCall();
+	std::tuple<Operand, DataType> AssignExpr();
+	std::tuple<Operand, DataType> EqualExpr();
+	std::tuple<Operand, DataType> CmpExpr();
+	std::tuple<Operand, DataType> AddExpr();
+	std::tuple<Operand, DataType> MultExpr();
+	std::tuple<Operand, DataType> PrefixExpr();
+	std::tuple<Operand, DataType> PostfixExpr();
+	std::tuple<Operand, DataType> PrimExpr();
 
 
 	static void CheckExpectedLexeme(const Lexeme& givenLexeme, LexemeType expected);
@@ -41,6 +43,7 @@ private:
 
 	std::unique_ptr<Scanner> scanner;
 	std::unique_ptr<SemanticTree> semTree;
+	std::unique_ptr<IntermediateGenerator> interGen;
 };
 
 

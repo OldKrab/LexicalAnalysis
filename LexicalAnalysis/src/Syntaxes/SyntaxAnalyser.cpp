@@ -1,4 +1,5 @@
 ﻿#include <stack>
+#include <algorithm>
 #include "SyntaxAnalyser.h"
 #include "Exceptions/AnalysisExceptions.h"
 
@@ -78,8 +79,9 @@ void SyntaxAnalyser::DataDecl()
 		lex = scanner->NextScan();												//Scan '=', ',', ';'
 
 		if (lex.type == LexemeType::Assign) {
-			auto rightType = AssignExpr();
+			auto [operand, rightType] = AssignExpr();
 			semTree->AssignVariable(varNode, rightType);
+			interGen->AssignVariable(varNode->Data->Identifier, operand);
 
 			lex = scanner->NextScan();											//Scan  ',', ';'
 		}
@@ -171,7 +173,7 @@ void SyntaxAnalyser::For()
 
 	DataDecl();
 
-	auto condType = AssignExpr();
+	auto [operand, condType] = AssignExpr();
 
 	semTree->CheckCastable(condType, DataType::Int);
 
@@ -189,7 +191,7 @@ void SyntaxAnalyser::For()
 	semTree->DeleteSubTree(savedNode);
 }
 
-DataType SyntaxAnalyser::AssignExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::AssignExpr()
 {
 	auto lex = scanner->LookForward(2);
 	if (lex.type == LexemeType::Assign)
@@ -201,81 +203,94 @@ DataType SyntaxAnalyser::AssignExpr()
 
 		lex = scanner->NextScan();										// Scan =
 
-		semTree->AssignVariable(node, EqualExpr());
+		auto [operand, type] = EqualExpr();
 
-		return node->GetDataType();
+		semTree->AssignVariable(node, type);
+		auto triad = interGen->AssignVariable(node->Data->Identifier, operand);
+		operand = Operand(triad);
+
+		return { operand, node->GetDataType() };
 	}
 	return EqualExpr();
 }
 
-DataType SyntaxAnalyser::EqualExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::EqualExpr()
 {
-	auto leftType = CmpExpr();
+	auto [leftOperand, leftType] = CmpExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::E || lex.type == LexemeType::NE)
 	{
 		lex = scanner->NextScan();											// Scan ==, !=
-		auto rightType = CmpExpr();
+		auto [rightOperand, rightType] = CmpExpr();
 
-		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
+		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
+		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
+		leftOperand = Operand(triad);
+
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return { leftOperand, leftType };
 }
 
-DataType SyntaxAnalyser::CmpExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::CmpExpr()
 {
-	auto leftType = AddExpr();
+	auto [leftOperand, leftType] = AddExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::G || lex.type == LexemeType::GE
 		|| lex.type == LexemeType::L || lex.type == LexemeType::LE)
 	{
 		lex = scanner->NextScan();													// Scan >, >=, <, <=
-		const auto rightType = AddExpr();
+		auto [rightOperand, rightType] = AddExpr();
 
-		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
+		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
+		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
+		leftOperand = Operand(triad);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return { leftOperand, leftType };
 }
 
-DataType SyntaxAnalyser::AddExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::AddExpr()
 {
-	auto leftType = MultExpr();
+	auto [leftOperand, leftType] = MultExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Plus
 		|| lex.type == LexemeType::Minus)
 	{
 		scanner->NextScan();													// Scan +, -
-		const auto rightType = MultExpr();
+		 auto [rightOperand,rightType] = MultExpr();
 
-		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
+		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
+		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
+		leftOperand = Operand(triad);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return { leftOperand, leftType };
 }
 
-DataType SyntaxAnalyser::MultExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::MultExpr()
 {
-	auto leftType = PrefixExpr();
+	auto [leftOperand, leftType] = PrefixExpr();
 	auto lex = scanner->LookForward(1);
 	while (lex.type == LexemeType::Mul
 		|| lex.type == LexemeType::Div
 		|| lex.type == LexemeType::Modul)
 	{
 		scanner->NextScan();												// Scan *, /, %
-		const auto rightType = PrefixExpr();
+		auto [rightOperand, rightType] = PrefixExpr();
 
-		leftType = semTree->PerformOperation(leftType, rightType, lex.type);
+		leftType = semTree->CheckOperation(leftType, rightType, lex.type);
+		auto triad = interGen->Operation(lex.type, leftOperand, rightOperand);
+		leftOperand = Operand(triad);
 
 		lex = scanner->LookForward(1);
 	}
-	return leftType;
+	return { leftOperand, leftType };
 }
 
-DataType SyntaxAnalyser::PrefixExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::PrefixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	std::stack<Lexeme> ops;
@@ -286,19 +301,20 @@ DataType SyntaxAnalyser::PrefixExpr()
 		ops.push(lex);
 		lex = scanner->LookForward(1);
 	}
-	auto value = PostfixExpr();
-
+	auto [operand, type] = PostfixExpr();
+	Triad* triad = nullptr;
 	while (!ops.empty())
 	{
 		lex = ops.top();
-		value = semTree->PerformPrefixOperation(lex.type, value);
-
+		type = semTree->CheckPrefixOperation(lex.type, type);
+		triad = interGen->Operation(lex.type, operand);
 		ops.pop();
 	}
-	return value;
+
+	return { triad ? Operand(triad) : operand, type };
 }
 
-DataType SyntaxAnalyser::PostfixExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::PostfixExpr()
 {
 	auto lex = scanner->LookForward(1);
 	auto lex2 = scanner->LookForward(2);
@@ -311,7 +327,7 @@ DataType SyntaxAnalyser::PostfixExpr()
 	return PrimExpr();
 }
 
-DataType SyntaxAnalyser::FuncCall()
+std::tuple<Operand, DataType> SyntaxAnalyser::FuncCall()
 {
 	auto lex = scanner->NextScan();							// Scan Id, main
 
@@ -319,15 +335,18 @@ DataType SyntaxAnalyser::FuncCall()
 
 	scanner->NextScan();											// Scan (
 
-	std::vector<DataType> args;
+	std::vector<Operand> args;
+	std::vector<DataType> argsTypes;
+
 	lex = scanner->LookForward(1);
 	// work with arguments
 	if (lex.type != LexemeType::ClosePar)
 	{
 		do
 		{
-			auto type = AssignExpr();
-			args.push_back(type);
+			auto [operand, type] = AssignExpr();
+			args.push_back(operand);
+			argsTypes.push_back(type);
 
 			lex = scanner->NextScan();								// Scan ,
 		} while (lex.type == LexemeType::Comma);
@@ -337,12 +356,15 @@ DataType SyntaxAnalyser::FuncCall()
 	else
 		scanner->NextScan();
 
-	semTree->CheckValidFuncArgs(funcNode, args);
-	return DataType::Void;
+	semTree->CheckValidFuncArgs(funcNode, argsTypes);
+
+	auto triad = interGen->CallFunction(funcNode->Data->Identifier, args);
+
+	return { Operand(triad), DataType::Void };
 }
 
 
-DataType SyntaxAnalyser::PrimExpr()
+std::tuple<Operand, DataType> SyntaxAnalyser::PrimExpr()
 {
 	auto lex = scanner->NextScan();								// Scan DecNum, HexNum, OctNum, Id, Main (
 
@@ -358,13 +380,13 @@ DataType SyntaxAnalyser::PrimExpr()
 	{
 		auto node = semTree->FindVariableNodeUp(lex.str);
 		semTree->CheckInitialized(node);
-		return node->GetDataType();
+		return { Operand(node->Data->Identifier), node->GetDataType() };
 	}
 
 	if (lex.type == LexemeType::DecimNum || lex.type == LexemeType::HexNum
 		|| lex.type == LexemeType::OctNum)
 	{
-		return semTree->GetDataTypeOfNum(lex);
+		return{ Operand(lex.str), semTree->GetDataTypeOfNum(lex) };
 	}
 
 	throw ExpectedExpressionException(lex);

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Exceptions\AnalysisExceptions.h" />
+    <ClInclude Include="src\IntermediateCode\IntermediateGenerator.h" />
     <ClInclude Include="src\Lexical\Lexeme.h" />
     <ClInclude Include="src\Lexical\Scanner.h" />
     <ClInclude Include="src\Lexical\SourceText.h" />
@@ -32,8 +33,12 @@
     <ClInclude Include="src\Types\DataType.h" />
     <ClInclude Include="src\Types\LexemeType.h" />
     <ClInclude Include="src\Types\SemanticType.h" />
+    <ClInclude Include="src\IntermediateCode\Triad.h" />
+    <ClInclude Include="src\Types\TriadType.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\IntermediateCode\IntermediateGenerator.cpp" />
+    <ClCompile Include="src\IntermediateCode\Triad.cpp" />
     <ClCompile Include="src\Lexical\Scanner.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Semantics\Node\FuncData.cpp" />
@@ -143,6 +148,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,6 +164,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

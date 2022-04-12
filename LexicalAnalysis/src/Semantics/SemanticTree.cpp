@@ -50,7 +50,7 @@ void SemanticTree::CheckInitialized(const Node* node)
 		throw UsingUninitializedVariableException(node->Data->Identifier);
 }
 
-DataType SemanticTree::PerformOperation(DataType leftType, DataType rightType, LexemeType operation)
+DataType SemanticTree::CheckOperation(DataType leftType, DataType rightType, LexemeType operation)
 {
 	auto resType = DataType::Int;
 	if (leftType == DataType::Long || rightType == DataType::Long)
@@ -62,7 +62,7 @@ DataType SemanticTree::PerformOperation(DataType leftType, DataType rightType, L
 
 
 
-DataType SemanticTree::PerformPrefixOperation(LexemeType operation, DataType type) 
+DataType SemanticTree::CheckPrefixOperation(LexemeType operation, DataType type) 
 {
 	auto resType = DataType::Int;
 	if (type == DataType::Long)
